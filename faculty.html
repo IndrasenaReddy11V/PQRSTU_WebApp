@@ -1,13 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Faculty · PQRSTU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#0b1220; --bg2:#141b2e; --text:#eaf0ff; --muted:#b8c0d9; --stroke:rgba(255,255,255,.12);
+    --card:rgba(16,23,41,.62); --accent:#3d6df2; --brand:#9b1c25; --ok:#22c55e; --bad:#ef4444; --amber:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Inter,system-ui,Arial,Segoe UI,sans-serif; color:var(--text);
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #2a3566 0%, transparent 60%),
+      radial-gradient(1000px 700px at 110% 0%, #5b2231 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
+    padding:20px; display:flex; justify-content:center; overflow-x:hidden;
+  }
+  .wrap{ width:min(1100px,100%) }
+
+  .card{
+    background:var(--card); border:1px solid var(--stroke);
+    border-radius:16px; padding:18px; margin:14px 0;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 50px rgba(0,0,0,.24);
+    opacity:0; transform:translateY(10px); animation:lift .55s ease forwards;
+  }
+  @keyframes lift{to{opacity:1; transform:none}}
+  .muted{ color:var(--muted) }
+  h1,h2,h3{ margin:0 0 8px }
+
+  .top{
+    display:flex; align-items:center; gap:14px; margin-bottom:10px
+  }
+  .logo{ width:52px; height:52px; border-radius:12px; object-fit:cover; background:#fff; border:1px solid var(--stroke) }
+
+  .grid2{ display:grid; gap:14px; grid-template-columns:1.1fr .9fr }
+  @media (max-width:1000px){ .grid2{ grid-template-columns:1fr } }
+  .grid3{ display:grid; gap:10px; grid-template-columns:1fr 1fr 1fr }
+  .grid2x{ display:grid; gap:10px; grid-template-columns:1fr 1fr }
+
+  input{
+    width:100%; padding:12px; border-radius:12px; border:1px solid #304;
+    background:#0f1630; color:#eaf0ff; font-size:15px;
+  }
+  .btn{
+    padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
+    background:linear-gradient(180deg, rgba(61,109,242,.3), rgba(61,109,242,.15));
+    color:#fff; font-weight:800; cursor:pointer; transition:.12s transform;
+  }
+  .btn:hover{ transform:translateY(-1px) }
+  .btn.red{ background:linear-gradient(180deg, rgba(155,28,37,.55), rgba(155,28,37,.2)) }
+  .btn.green{ background:linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28)) }
+  .btn.amber{ background:linear-gradient(180deg, rgba(245,158,11,.45), rgba(245,158,11,.22)) }
+
+  .sso{ display:flex; gap:10px; flex-wrap:wrap }
+  .sbtn{
+    display:flex; align-items:center; gap:10px; justify-content:center;
+    padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
+    background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+    color:#fff; font-weight:800; cursor:pointer
+  }
+  .ico{ width:18px; height:18px; display:inline-block; }
+  .ico.g{ background:url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') center/contain no-repeat }
+  .ico.ms{
+    background-image:url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 480'>\
+      <rect x='24' y='24' width='204' height='204' fill='%23f25022'/>\
+      <rect x='252' y='24' width='204' height='204' fill='%237eb900'/>\
+      <rect x='24' y='252' width='204' height='204' fill='%2300a4ef'/>\
+      <rect x='252' y='252' width='204' height='204' fill='%23ffb900'/>\
+    </svg>");
+    background-position:center; background-repeat:no-repeat; background-size:contain;
+  }
+
+  #qrBox{
+    display:flex; justify-content:center; align-items:center; min-height:260px; border-radius:14px;
+    border:1px dashed rgba(255,255,255,.14); background:#0f1630; position:relative;
+  }
+  .pulse{
+    position:absolute; inset:-2px; border-radius:14px; pointer-events:none;
+    animation:pulse 2.2s ease-in-out infinite; border:2px solid rgba(61,109,242,.25);
+  }
+  @keyframes pulse{
+    0%{opacity:.6; transform:scale(.98)}
+    50%{opacity:.15; transform:scale(1.02)}
+    100%{opacity:.6; transform:scale(.98)}
+  }
+
+  table{ width:100%; border-collapse:collapse; font-size:14px }
+  th,td{ border-bottom:1px solid rgba(255,255,255,.08); padding:8px 6px; text-align:left; vertical-align:top }
+  .pill{ display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); }
+  .ok{ color:#9dffaf; border-color:#2c7a43 } .badc{ color:#ff9da6; border-color:#7a2c2c } .info{ color:#bfe1ff; border-color:#3d6df2 }
+</style>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<!-- QR generator -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header / Auth -->
+  <div class="card">
+    <div class="top">
+      <img class="logo" src="assets/pqrstu-logo.png" alt="logo" onerror="this.style.display='none'">
+      <div>
+        <h1>Faculty · Session Control</h1>
+        <div class="muted">Start a live session → rotating QR → review check-ins & resolve tokens</div>
+      </div>
+    </div>
+
+    <div class="sso">
+      <button class="sbtn" id="googleBtn"><span class="ico g"></span> Sign in with Google</button>
+      <button class="sbtn" id="microsoftBtn"><span class="ico ms"></span> Sign in with Microsoft</button>
+      <span id="authMsg" class="muted">Not signed in</span>
+    </div>
+  </div>
+
+  <!-- Session Config + QR / Tokens -->
+  <div class="grid2">
+    <div class="card">
+      <h2>Session details</h2>
+      <div class="grid2x" style="margin-top:8px">
+        <input id="course" placeholder="Course Name">
+        <input id="hours" type="number" min="1" value="1" placeholder="No. of Hours">
+      </div>
+      <input id="remarks" placeholder="Remarks (optional)" style="margin-top:8px">
+
+      <h3 style="margin-top:12px">Geofence</h3>
+      <div class="grid3">
+        <input id="lat" placeholder="Room Lat (e.g., 28.545)">
+        <input id="lng" placeholder="Room Lng (e.g., 77.192)">
+        <input id="radius" placeholder="Radius m (e.g., 60)" value="60">
+      </div>
+
+      <h3 style="margin-top:12px">QR Settings</h3>
+      <div class="grid3">
+        <input id="rotate" placeholder="QR rotate sec" value="15">
+        <input id="life" placeholder="Token life sec" value="90">
+        <input id="classid" placeholder="Class ID (optional)">
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px">
+        <button class="btn green" id="startBtn">Start Session</button>
+        <button class="btn amber" id="pauseBtn" disabled>Pause</button>
+        <button class="btn amber" id="resumeBtn" disabled>Resume</button>
+        <button class="btn" id="extendBtn" disabled>Extend +5m</button>
+        <button class="btn red" id="endBtn" disabled>End Session</button>
+        <button class="btn" id="downloadBtn" disabled>Download CSV</button>
+      </div>
+      <div id="sessMsg" class="muted" style="margin-top:8px">—</div>
+    </div>
+
+    <div class="card">
+      <h2>Dynamic QR</h2>
+      <div id="qrBox">
+        <div class="pulse"></div>
+        <div id="qr"></div>
+      </div>
+      <div id="qrMsg" class="muted" style="margin-top:8px">QR idle</div>
+
+      <h2 style="margin-top:14px">Raise Tokens (live)</h2>
+      <div id="tokens" class="muted">No open tokens</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Live Attendance</h2>
+    <table>
+      <thead><tr><th>Time</th><th>Reg/Email</th><th>Result</th><th>Acc (m)</th></tr></thead>
+      <tbody id="att"></tbody>
+    </table>
+  </div>
+</div>
+
 <script>
-  const firebaseConfig = {
+/*** 0) Firebase config — PASTE YOURS ***/
+const firebaseConfig = {
+  /* =========================
+     ADD YOUR FIREBASE CONFIG
+     (same project as student)
+     ========================= */
   apiKey: "AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",
   authDomain: "project-qr-eceae.firebaseapp.com",
   projectId: "project-qr-eceae",
   storageBucket: "project-qr-eceae.firebasestorage.app",
   messagingSenderId: "527248340371",
   appId: "1:527248340371:web:870ca9bed83372e390e466"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db   = firebase.firestore();
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+/*** 1) Auth with popup → redirect fallback ***/
+const $ = id => document.getElementById(id);
+function providerSignin(p){ p.setCustomParameters({prompt:'select_account'}); return auth.signInWithPopup(p).catch(async e=>{
+  if(['auth/operation-not-supported-in-this-environment','auth/popup-blocked','auth/popup-closed-by-user'].includes(e.code)){
+    await auth.signInWithRedirect(p); return null;
+  } throw e;
+});}
+async function handleRedirect(){ try{ const r=await auth.getRedirectResult(); if(r && r.user) onSignedIn(); }catch(e){ $('authMsg').textContent='Error: '+e.message; } }
+handleRedirect();
+
+$('googleBtn').onclick = async ()=>{ try{ const r=await providerSignin(new firebase.auth.GoogleAuthProvider()); if(r&&r.user) onSignedIn(); }catch(e){ $('authMsg').textContent='Error: '+e.message; } };
+$('microsoftBtn').onclick = async ()=>{ try{ const m=new firebase.auth.OAuthProvider('microsoft.com'); m.addScope('openid');m.addScope('profile');m.addScope('email'); const r=await providerSignin(m); if(r&&r.user) onSignedIn(); }catch(e){ $('authMsg').textContent='Error: '+e.message; } };
+
+function enableSessionButtons(on){
+  $('pauseBtn').disabled=!on; $('resumeBtn').disabled=!on; $('extendBtn').disabled=!on; $('endBtn').disabled=!on; $('downloadBtn').disabled=!on;
+}
+
+async function onSignedIn(){
+  const u=auth.currentUser;
+  $('authMsg').textContent='Signed in as '+u.email;
+}
+
+/*** 2) Session lifecycle & QR rotation ***/
+let slotId=null, qrTimer=null, listenerAtt=null, listenerRt=null, attendanceRows=[];
+function nowSec(){ return Math.floor(Date.now()/1000); }
+
+$('startBtn').onclick = async ()=>{
+  if(!auth.currentUser) return alert('Sign in first');
+  const course=$('course').value.trim();
+  const hours =Number($('hours').value||1);
+  const remarks=$('remarks').value.trim();
+  const lat   =Number($('lat').value);
+  const lng   =Number($('lng').value);
+  const radius=Number($('radius').value||60);
+  const rotate=Number($('rotate').value||15);
+  const life  =Number($('life').value||90);
+  const classId=$('classid').value.trim()||null;
+  if(!course || !lat || !lng) return alert('Enter Course + Room Lat/Lng');
+
+  // Create live slot
+  const ref = await db.collection('slots').add({
+    course, hours, remarks, class_id: classId,
+    created_by: auth.currentUser.uid,
+    start_ts: firebase.firestore.FieldValue.serverTimestamp(),
+    status:'live',
+    qr_rotate_s: rotate, token_life_s: life,
+    room_lat: lat, room_lng: lng, radius_m: radius
+  });
+  slotId=ref.id;
+  $('sessMsg').textContent='Live session started · slot='+slotId;
+  enableSessionButtons(true);
+  $('startBtn').disabled=true;
+
+  startQR(rotate, life);
+
+  // live attendance
+  if(listenerAtt) listenerAtt();
+  listenerAtt = db.collection('checkins').where('slot_id','==',slotId).orderBy('ts_server','desc')
+    .onSnapshot(s=>{
+      attendanceRows = s.docs.map(d=>{
+        const x=d.data(); const t=x.ts_server?.toDate?.()||new Date();
+        return {t, who:(x.reg_no||x.email||'—'), res:(x.result||'OK'), acc:Math.round(x.acc_m||0)};
+      });
+      renderAttendance();
+    });
+
+  // live raise tokens
+  if(listenerRt) listenerRt();
+  listenerRt = db.collection('raise_tokens').where('slot_id','==',slotId).where('state','==','open')
+    .onSnapshot(s=>{
+      if(s.empty){ $('tokens').textContent='No open tokens'; return; }
+      $('tokens').innerHTML = s.docs.map(d=>{
+        const x=d.data();
+        return `<div style="margin:8px 0; padding:10px; border:1px solid rgba(255,255,255,.14); border-radius:12px">
+          <div><strong>${x.email||x.student_uid}</strong></div>
+          <div class="muted">${x.reason||''}</div>
+          <div style="margin-top:8px; display:flex; gap:8px">
+            <button class="btn green" onclick="resolveToken('${d.id}','accepted')">ACCEPT</button>
+            <button class="btn red" onclick="resolveToken('${d.id}','denied')">DENY</button>
+          </div>
+        </div>`;
+      }).join('');
+    });
+};
+
+function renderAttendance(){
+  $('att').innerHTML = attendanceRows.map(r=>`<tr><td>${r.t.toLocaleTimeString()}</td><td>${r.who}</td><td>${r.res}</td><td>${r.acc}</td></tr>`).join('');
+}
+
+function startQR(rotateSec, lifeSec){
+  if(qrTimer) clearInterval(qrTimer);
+  function draw(){
+    const payload = { ver:1, slot_id: slotId, issued: nowSec(), exp: nowSec()+lifeSec, nonce: crypto.randomUUID(), token_id: crypto.randomUUID() };
+    const token = `att://v1.${btoa(JSON.stringify(payload))}.demo`;
+    const holder=$('qr'); holder.innerHTML='';
+    new QRCode(holder, { text: token, width: 230, height: 230, correctLevel: QRCode.CorrectLevel.M });
+    $('qrMsg').textContent = `QR refreshed · expires in ${lifeSec}s · rotates every ${rotateSec}s`;
+  }
+  draw();
+  qrTimer = setInterval(draw, rotateSec*1000);
+  $('pauseBtn').disabled=false; $('resumeBtn').disabled=true;
+}
+
+$('pauseBtn').onclick = ()=>{
+  if(qrTimer){ clearInterval(qrTimer); qrTimer=null; $('qrMsg').textContent='QR paused'; $('pauseBtn').disabled=true; $('resumeBtn').disabled=false; }
+};
+$('resumeBtn').onclick = ()=>{
+  const rotate=Number($('rotate').value||15);
+  const life  =Number($('life').value||90);
+  startQR(rotate, life);
+};
+$('extendBtn').onclick = async ()=>{
+  if(!slotId) return;
+  await db.collection('slots').doc(slotId).update({ extend_ts: firebase.firestore.FieldValue.serverTimestamp() });
+  $('sessMsg').textContent='Session extended (marker updated)';
+};
+$('endBtn').onclick = async ()=>{
+  if(qrTimer){ clearInterval(qrTimer); qrTimer=null; }
+  if(slotId){ await db.collection('slots').doc(slotId).update({ status:'closed', end_ts: firebase.firestore.FieldValue.serverTimestamp() }); }
+  $('sessMsg').textContent='Session ended';
+  enableSessionButtons(false); $('startBtn').disabled=false;
+  if(listenerAtt) listenerAtt(); if(listenerRt) listenerRt();
+  slotId=null; $('qr').innerHTML=''; $('qrMsg').textContent='QR idle';
+};
+
+/*** 3) Raise Token resolution ***/
+async function resolveToken(id, decision){
+  await db.collection('raise_tokens').doc(id).update({ state: decision, resolved_ts: firebase.firestore.FieldValue.serverTimestamp() });
+}
+
+/*** 4) Download CSV ***/
+$('downloadBtn').onclick = ()=>{
+  if(!attendanceRows.length) return alert('No attendance yet');
+  const headers = ['Time','Reg/Email','Result','Acc(m)'];
+  const rows = attendanceRows.map(r=>[r.t.toISOString(), r.who, r.res, r.acc]);
+  const csv = [headers, ...rows].map(a=>a.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const course = $('course').value.trim() || 'course';
+  a.href = url; a.download = `attendance_${course}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+};
+
+// Expose resolve fn to inline buttons
+window.resolveToken = resolveToken;
 </script>
+</body>
+</html>
+
