@@ -39,7 +39,7 @@
   .subtitle{ color:var(--muted); margin:0 0 10px }
   .sso{ display:flex; flex-direction:column; gap:10px; margin-top:10px }
   .sbtn{
-    display:flex; align-items:center; gap:10px; justify-content:center;
+    display:flex; align-items:center; gap:12px; justify-content:center;
     width:100%; padding:12px 14px; border-radius:12px;
     border:1px solid rgba(255,255,255,.18);
     background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
@@ -47,8 +47,18 @@
   }
   .sbtn:hover{ transform:translateY(-1px) }
   .ico{ width:18px; height:18px; display:inline-block; }
-  .g{ background:url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') center/contain no-repeat }
-  .ms{ background:url('https://www.svgrepo.com/show/303143/microsoft-logo.svg') center/contain no-repeat; filter:invert(1) }
+  .ico.g{ background:url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') center/contain no-repeat }
+  /* Inline MS 4-squares icon (SVG data URI) */
+  .ico.ms{
+    background-image:url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' width='480' height='480' viewBox='0 0 480 480'>\
+      <rect x='24' y='24' width='204' height='204' fill='%23f25022'/>\
+      <rect x='252' y='24' width='204' height='204' fill='%237eb900'/>\
+      <rect x='24' y='252' width='204' height='204' fill='%2300a4ef'/>\
+      <rect x='252' y='252' width='204' height='204' fill='%23ffb900'/>\
+    </svg>");
+    background-position:center; background-repeat:no-repeat; background-size:contain;
+  }
 
   .grid{ display:grid; gap:16px; grid-template-columns: 1fr 1fr }
   @media (max-width:860px){ .grid{ grid-template-columns:1fr } }
@@ -200,7 +210,7 @@ const show = (id, yes=true)=> qs(id).style.display = yes? 'block' : 'none';
 function deviceId(){ const k='pqr_device_id'; let v=localStorage.getItem(k); if(!v){ v=crypto.randomUUID(); localStorage.setItem(k,v);} return v; }
 qs('devPill').textContent = 'Device: ' + deviceId();
 
-/*** Geolocation on login (and pill update) ***/
+/*** Geolocation pill ***/
 let lastGeo=null;
 async function getGeoOnce(){
   return new Promise((res,rej)=>{
@@ -223,20 +233,48 @@ async function refreshGeoPill(){
 }
 refreshGeoPill();
 
-/*** AUTH — Google + Microsoft ***/
+/*** Sign-in handlers with robust popup→redirect fallback ***/
+async function signInWithProvider(provider){
+  provider.setCustomParameters({ prompt: 'select_account' });
+  try{
+    // Try popup (desktop friendly)
+    const cred = await auth.signInWithPopup(provider);
+    return cred;
+  }catch(e){
+    // If popup blocked / not supported, fall back to redirect (mobile friendly)
+    if (e.code === 'auth/operation-not-supported-in-this-environment' ||
+        e.code === 'auth/popup-blocked' ||
+        e.code === 'auth/popup-closed-by-user') {
+      await auth.signInWithRedirect(provider);
+      return null; // result will be handled on page load
+    } else {
+      throw e;
+    }
+  }
+}
+async function handleRedirectResult(){
+  try{
+    const res = await auth.getRedirectResult();
+    if(res && res.user){ onSignedIn('Redirect'); }
+  }catch(e){ qs('authMsg').textContent = 'Error: '+e.message; }
+}
+handleRedirectResult();
+
 qs('googleBtn').onclick = async ()=>{
   try{
-    const provider = new firebase.auth.GoogleAuthProvider();
-    await auth.signInWithPopup(provider);
-    onSignedIn('Google');
+    const gp = new firebase.auth.GoogleAuthProvider();
+    const r = await signInWithProvider(gp);
+    if(r && r.user) onSignedIn('Google');
   }catch(e){ qs('authMsg').textContent = 'Error: '+e.message; }
 };
+
 qs('microsoftBtn').onclick = async ()=>{
   try{
-    const provider = new firebase.auth.OAuthProvider('microsoft.com');
-    await auth.signInWithPopup(provider);
-    onSignedIn('Microsoft');
-  }catch(e){ qs('authMsg').textContent = 'Error: '+e.message + ' (Enable Microsoft in Firebase Auth)'; }
+    const ms = new firebase.auth.OAuthProvider('microsoft.com');
+    ms.addScope('openid'); ms.addScope('profile'); ms.addScope('email'); // basic scopes
+    const r = await signInWithProvider(ms);
+    if(r && r.user) onSignedIn('Microsoft');
+  }catch(e){ qs('authMsg').textContent = 'Error: '+e.message + ' (Enable Microsoft in Firebase Auth & Azure app)'; }
 };
 
 async function onSignedIn(source){
@@ -251,7 +289,7 @@ async function onSignedIn(source){
   }catch(_){}
   // check if user profile exists
   const doc = await db.collection('users').doc(u.uid).get();
-  if(doc.exists){ // go home
+  if(doc.exists){
     qs('hi').textContent = 'Hi ' + (doc.data().name||'Student');
     show('authPanel', false); show('signupPanel', false); show('homePanel', true);
     checkLiveSession();
@@ -297,7 +335,6 @@ async function checkLiveSession(){
     qs('goMark').style.background = 'linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))';
     qs('goMark').onclick = ()=>{
       show('homePanel', false); show('attPanel', true);
-      // pre-fill reg with profile
       db.collection('users').doc(auth.currentUser.uid).get().then(p=>{
         if(p.exists){ qs('areg').value = p.data().reg_no; }
       });
@@ -336,12 +373,11 @@ function distM(a,b){ const toR=x=>x*Math.PI/180, R=6371000; const dLat=toR(b.lat
 qs('markBtn').onclick = async ()=>{
   const u = auth.currentUser; if(!u) return alert('Sign in first');
   const reg = qs('areg').value.trim(); const pass = qs('apass').value.trim();
-  if(!validReg(reg)) return alert('Registration No format invalid');
-  if(!validDob(pass)) return alert('Password (DOB) format invalid');
+  if(!/^[0-9]{7}[A-Z]{3}$/.test(reg)) return alert('Registration No format invalid');
+  if(!/^(0[1-9]|[12][0-9]|3[01])[A-Z][a-z]{2}[0-9]{4}$/.test(pass)) return alert('Password (DOB) format invalid');
   if(!parsed) return alert('Scan the live QR first');
   if(!currentSlot || parsed.slot_id !== currentSlot.id) return alert('This QR is not for the active session');
 
-  // Geo check client-side using slot lat/lng
   if(!lastGeo) { await refreshGeoPill(); }
   const d = distM({lat:lastGeo.lat,lng:lastGeo.lng},{lat:currentSlot.room_lat,lng:currentSlot.room_lng});
   if(d > (currentSlot.radius_m||60)) return alert("You're not in classroom range to mark your attendance. Please contact faculty!");
@@ -354,7 +390,6 @@ qs('markBtn').onclick = async ()=>{
     device_id: deviceId(), token_id: parsed.token_id||null, method:'QR', result:'OK'
   });
 
-  // success overlay
   qs('successOverlay').style.display='flex';
   setTimeout(()=>{ qs('successOverlay').style.display='none'; }, 1800);
 };
