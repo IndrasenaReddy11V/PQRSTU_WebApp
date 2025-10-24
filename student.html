@@ -1,15 +1,48 @@
-<script>
-  // 1) PASTE YOUR FIREBASE CONFIG BELOW (from Part B step 9)
-  const firebaseConfig = {
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Student | PQRSTU</title>
+  <style>
+    body{font-family:system-ui,Arial;margin:0;padding:20px;max-width:600px}
+    .btn{width:100%;padding:14px;border-radius:10px;border:1px solid #333;background:#fff;font-size:18px;margin:10px 0}
+    .field{margin:8px 0}
+    .status{padding:10px;border:1px solid #ddd;border-radius:10px;margin:12px 0}
+  </style>
+  <!-- Firebase scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h2>Student Portal</h2>
+
+  <button class="btn" id="googleBtn">Sign in with Google</button>
+
+  <div class="status" id="msg">Waiting for sign-in...</div>
+
+  <script>
+    /* Paste your Firebase config from console here */
+    const firebaseConfig = {
   apiKey: "AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",
   authDomain: "project-qr-eceae.firebaseapp.com",
   projectId: "project-qr-eceae",
   storageBucket: "project-qr-eceae.firebasestorage.app",
   messagingSenderId: "527248340371",
   appId: "1:527248340371:web:870ca9bed83372e390e466"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db   = firebase.firestore();
-</script>
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
+    document.getElementById("googleBtn").onclick = async () => {
+      try {
+        await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+        document.getElementById("msg").innerText = "✅ Signed in as " + auth.currentUser.email;
+      } catch (e) {
+        document.getElementById("msg").innerText = "❌ Error: " + e.message;
+      }
+    };
+  </script>
+</body>
+</html>
