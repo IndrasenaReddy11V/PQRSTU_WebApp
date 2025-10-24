@@ -9,18 +9,18 @@
 <style>
   :root{
     --bg1:#0b1220; --bg2:#141b2e; --text:#eaf0ff; --muted:#b8c0d9;
-    --brand:#9b1c25; --accent:#3d6df2; --stroke:rgba(255,255,255,.12);
-    --card:rgba(16,23,41,.62); --ok:#22c55e; --bad:#ef4444;
+    --stroke:rgba(255,255,255,.12); --card:rgba(16,23,41,.62);
   }
   *{box-sizing:border-box} html,body{height:100%}
   body{
     margin:0; font-family:Inter,system-ui,Arial,Segoe UI,sans-serif; color:var(--text);
-    background: radial-gradient(1200px 600px at 20% -10%, #2a3566 0%, transparent 60%),
-                radial-gradient(1000px 700px at 100% 0%, #5b2231 0%, transparent 60%),
-                linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #2a3566 0%, transparent 60%),
+      radial-gradient(1000px 700px at 100% 0%, #5b2231 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
     padding:20px; display:flex; justify-content:center;
   }
-  .wrap{ width:min(960px,100%); }
+  .wrap{ width:min(960px,100%) }
 
   .card{
     background:var(--card); border:1px solid var(--stroke);
@@ -46,7 +46,6 @@
   .sbtn:hover{ transform:translateY(-1px) }
   .ico{ width:18px; height:18px; display:inline-block; }
   .ico.g{ background:url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') center/contain no-repeat }
-  /* Microsoft 4-squares icon */
   .ico.ms{
     background-image:url("data:image/svg+xml;utf8,\
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 480'>\
@@ -73,8 +72,6 @@
     color:#fff; font-weight:800; cursor:pointer
   }
   .btn.alt{ background:linear-gradient(180deg, rgba(155,28,37,.45), rgba(155,28,37,.2)) }
-  .pill{ display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); margin-top:6px }
-  .ok{ color:#9dffaf } .bad{ color:#ff9da6 }
 
   #scanner{ border-radius:12px; overflow:hidden; background:#0f1630; border:1px dashed rgba(255,255,255,.2) }
 
@@ -184,20 +181,25 @@
 <div class="success" id="successOverlay"><div>🎉 Congrats! Your attendance has been marked successfully</div></div>
 
 <script>
-/*** 0) Firebase config — PASTE YOUR SNIPPET HERE ***/
+/*** Firebase config — using your provided project ***/
 const firebaseConfig = {
-  /* your config */
+  apiKey: "AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",
+  authDomain: "project-qr-eceae.firebaseapp.com",
+  projectId: "project-qr-eceae",
+  storageBucket: "project-qr-eceae.firebasestorage.app",
+  messagingSenderId: "527248340371",
+  appId: "1:527248340371:web:870ca9bed83372e390e466"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
-/*** Tiny helpers ***/
+/*** helpers ***/
 const qs = id => document.getElementById(id);
 const show = (id, yes=true)=> qs(id).style.display = yes? 'block' : 'none';
 function deviceId(){ const k='pqr_device_id'; let v=localStorage.getItem(k); if(!v){ v=crypto.randomUUID(); localStorage.setItem(k,v);} return v; }
 
-/*** Silent geolocation (no UI pills shown) ***/
+/*** silent GPS capture (no UI) ***/
 let lastGeo=null;
 async function getGeoOnce(){
   return new Promise((res,rej)=>{
@@ -212,10 +214,10 @@ async function captureGeoSilently(){
   try{
     const p = await getGeoOnce();
     lastGeo = { lat:p.coords.latitude, lng:p.coords.longitude, acc_m:p.coords.accuracy, ts_ms:Date.now() };
-  }catch(_){ /* ignore */ }
+  }catch(_){ /* user denied — continue */ }
 }
 
-/*** Auth provider helper: popup -> redirect fallback (mobile safe) ***/
+/*** popup→redirect fallback so buttons always work ***/
 async function signInWithProvider(provider){
   provider.setCustomParameters({ prompt: 'select_account' });
   try{
@@ -238,7 +240,7 @@ async function handleRedirectResult(){
 }
 handleRedirectResult();
 
-/*** Login buttons ***/
+/*** SSO buttons ***/
 qs('googleBtn').onclick = async ()=>{
   try{
     await captureGeoSilently();
@@ -254,20 +256,23 @@ qs('microsoftBtn').onclick = async ()=>{
     ms.addScope('openid'); ms.addScope('profile'); ms.addScope('email');
     const r = await signInWithProvider(ms);
     if(r && r.user) onSignedIn('Microsoft');
-  }catch(e){ qs('authMsg').textContent = 'Error: '+e.message + ' (Enable Microsoft in Firebase Auth & Azure app)'; }
+  }catch(e){
+    qs('authMsg').textContent = 'Error: '+e.message + ' (Make sure Microsoft provider is enabled and Azure app configured in Firebase Auth).';
+  }
 };
 
+/*** after sign-in ***/
 async function onSignedIn(source){
   const u = auth.currentUser;
   qs('authMsg').textContent = `Signed in as ${u.email}`;
-  // save login audit (with silent geo + device id)
+  // audit login
   try{
     await db.collection('login_logs').add({
       uid:u.uid,email:u.email, ts_server:firebase.firestore.FieldValue.serverTimestamp(),
       lat:lastGeo?.lat||null, lng:lastGeo?.lng||null, acc_m:lastGeo?.acc_m||null, device_id:deviceId()
     });
   }catch(_){}
-  // existing profile?
+  // check profile
   const doc = await db.collection('users').doc(u.uid).get();
   if(doc.exists){
     qs('hi').textContent = 'Hi ' + (doc.data().name||'Student');
@@ -278,8 +283,8 @@ async function onSignedIn(source){
   }
 }
 
-/*** Signup validation and save (one-time) ***/
-function validReg(s){ return /^[0-9]{7}[A-Z]{3}$/.test(s); }           // 7 digits + 3 CAPS
+/*** signup validations ***/
+function validReg(s){ return /^[0-9]{7}[A-Z]{3}$/.test(s); }           // e.g., 2400249MBS
 function validDob(s){ return /^(0[1-9]|[12][0-9]|3[01])[A-Z][a-z]{2}[0-9]{4}$/.test(s); } // 27Aug2002
 qs('signupBtn').onclick = async ()=>{
   const u = auth.currentUser; if(!u) return alert('Sign in first');
@@ -300,7 +305,7 @@ qs('signupBtn').onclick = async ()=>{
   checkLiveSession();
 };
 
-/*** HOME — Live session check ***/
+/*** live session check ***/
 let currentSlot=null;
 async function checkLiveSession(){
   qs('liveHint').textContent = 'Checking live attendance…';
@@ -311,7 +316,7 @@ async function checkLiveSession(){
     qs('goMark').style.background = 'linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25))';
   }else{
     currentSlot = { id:snap.docs[0].id, ...snap.docs[0].data() };
-    qs('liveHint').innerHTML = '<span class="ok">Attendance is live now! You may mark your attendance.</span>';
+    qs('liveHint').textContent = 'Attendance is live now! You may mark your attendance.';
     qs('goMark').style.background = 'linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))';
     qs('goMark').onclick = ()=>{
       show('homePanel', false); show('attPanel', true);
@@ -322,7 +327,7 @@ async function checkLiveSession(){
   }
 }
 
-/*** ATTENDANCE — QR scanning + submit ***/
+/*** QR scanning + attendance submit ***/
 let html5Qr = null, lastToken=null, parsed=null;
 qs('startScan').onclick = async ()=>{
   if(html5Qr) return;
@@ -336,8 +341,8 @@ qs('startScan').onclick = async ()=>{
         try{
           const parts = lastToken.startsWith('att://') ? lastToken.split('.') : [null,lastToken];
           const payload = atob(parts[1]); parsed = JSON.parse(payload);
-          qs('scanMsg').innerHTML = `<span class="ok">Token OK</span> · slot=${parsed.slot_id} · exp=${new Date(parsed.exp*1000).toLocaleTimeString()}`;
-        }catch(e){ parsed=null; qs('scanMsg').innerHTML = '<span style="color:#ff9da6">Invalid token</span>'; }
+          qs('scanMsg').textContent = `Token OK · slot=${parsed.slot_id} · exp=${new Date(parsed.exp*1000).toLocaleTimeString()}`;
+        }catch(e){ parsed=null; qs('scanMsg').textContent = 'Invalid token'; }
       }
     );
   }catch(e){ qs('scanMsg').textContent = 'Camera error: '+e.message; }
@@ -354,12 +359,11 @@ function distM(a,b){ const toR=x=>x*Math.PI/180, R=6371000; const dLat=toR(b.lat
 qs('markBtn').onclick = async ()=>{
   const u = auth.currentUser; if(!u) return alert('Sign in first');
   const reg = qs('areg').value.trim(); const pass = qs('apass').value.trim();
-  if(!/^[0-9]{7}[A-Z]{3}$/.test(reg)) return alert('Registration No format invalid');
-  if(!/^(0[1-9]|[12][0-9]|3[01])[A-Z][a-z]{2}[0-9]{4}$/.test(pass)) return alert('Password (DOB) format invalid');
+  if(!validReg(reg)) return alert('Registration No format invalid');
+  if(!validDob(pass)) return alert('Password (DOB) format invalid');
   if(!parsed) return alert('Scan the live QR first');
   if(!currentSlot || parsed.slot_id !== currentSlot.id) return alert('This QR is not for the active session');
 
-  // capture geo silently if not done yet
   if(!lastGeo) await captureGeoSilently();
   if(currentSlot.room_lat && currentSlot.room_lng){
     const d = distM({lat:lastGeo?.lat||0,lng:lastGeo?.lng||0},{lat:currentSlot.room_lat,lng:currentSlot.room_lng});
@@ -375,8 +379,8 @@ qs('markBtn').onclick = async ()=>{
   });
 
   // success overlay
-  qs('successOverlay').style.display='flex';
-  setTimeout(()=>{ qs('successOverlay').style.display='none'; }, 1800);
+  document.getElementById('successOverlay').style.display='flex';
+  setTimeout(()=>{ document.getElementById('successOverlay').style.display='none'; }, 1800);
 };
 
 /*** Raise Token ***/
@@ -391,7 +395,7 @@ qs('raiseBtn').onclick = async ()=>{
   qs('rtMsg').textContent = 'Token raised. Faculty will see it instantly.';
 };
 
-// pre-ask location permission quietly to improve UX later
+// Pre-request location permission for smoother flow
 captureGeoSilently();
 </script>
 </body>
