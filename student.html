@@ -1,48 +1,255 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Student | PQRSTU</title>
-  <style>
-    body{font-family:system-ui,Arial;margin:0;padding:20px;max-width:600px}
-    .btn{width:100%;padding:14px;border-radius:10px;border:1px solid #333;background:#fff;font-size:18px;margin:10px 0}
-    .field{margin:8px 0}
-    .status{padding:10px;border:1px solid #ddd;border-radius:10px;margin:12px 0}
-  </style>
-  <!-- Firebase scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Student · PQRSTU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg1:#0b1220; --bg2:#141b2e; --text:#eaf0ff; --muted:#b8c0d9; --brand:#9b1c25; --accent:#3d6df2; --stroke:rgba(255,255,255,.12) }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{
+    margin:0; font-family:Inter,system-ui,Arial,Segoe UI,sans-serif; color:var(--text);
+    background: radial-gradient(1200px 600px at 20% -10%, #2a3566 0%, transparent 60%),
+                radial-gradient(1000px 700px at 100% 0%, #5b2231 0%, transparent 60%),
+                linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
+    padding:20px; display:flex; justify-content:center;
+  }
+  .wrap{ width:min(900px,100%); }
+  .hero{ display:flex; align-items:center; gap:14px; margin:6px 0 16px }
+  .logo{ width:54px; height:54px; border-radius:10px; object-fit:cover; background:#fff; border:1px solid var(--stroke) }
+  h1{ margin:0; font-size:22px }
+  .grid{ display:grid; gap:16px; grid-template-columns: 1fr 1fr }
+  @media (max-width:860px){ .grid{ grid-template-columns:1fr } }
+  .card{ background:rgba(16,23,41,.62); border:1px solid var(--stroke); border-radius:14px; padding:16px }
+  .muted{ color:var(--muted) }
+  .btn{ width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
+        background:linear-gradient(180deg, rgba(61,109,242,.3), rgba(61,109,242,.15));
+        color:#fff; font-weight:800; cursor:pointer; margin-top:10px }
+  .btn.secondary{ background:linear-gradient(180deg, rgba(155,28,37,.45), rgba(155,28,37,.2)) }
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+  input{ width:100%; padding:12px; border-radius:10px; border:1px solid #304; background:#0f1630; color:#eaf0ff }
+  #scanner{ border-radius:12px; overflow:hidden; background:#0f1630; border:1px dashed rgba(255,255,255,.2) }
+  .pill{ display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); margin-top:6px }
+  .ok{ color:#9dffaf } .bad{ color:#ff9da6 }
+  ul{ margin:6px 0 0; padding-left:18px }
+</style>
+<!-- Firebase (compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<!-- html5-qrcode (camera scanner) -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
-  <h2>Student Portal</h2>
+<div class="wrap">
+  <div class="hero">
+    <img class="logo" src="assets/pqrstu-logo.png" alt="logo" onerror="this.style.display='none'">
+    <div>
+      <h1>Student · Attendance Marking</h1>
+      <div class="muted">Scan the dynamic QR shown by faculty. Geofence & token checks will run automatically.</div>
+    </div>
+  </div>
 
-  <button class="btn" id="googleBtn">Sign in with Google</button>
+  <div class="grid">
+    <div class="card">
+      <h3>1) Sign in</h3>
+      <button class="btn" id="googleBtn">Sign in with Google</button>
+      <div class="row" style="margin-top:10px">
+        <input id="reg" placeholder="Registration No (e.g., 2400201MBS)">
+        <input id="pass" type="password" placeholder="Password (DOB first time)">
+      </div>
+      <div id="authMsg" class="muted" style="margin-top:8px">Not signed in</div>
+      <div style="margin-top:8px">
+        <span id="devPill" class="pill muted">Device: -</span>
+      </div>
+    </div>
 
-  <div class="status" id="msg">Waiting for sign-in...</div>
+    <div class="card">
+      <h3>2) Location (Geofence)</h3>
+      <div id="geo" class="muted">Checking location…</div>
+      <div style="margin-top:8px">
+        <span id="geoPill" class="pill">GPS: …</span>
+      </div>
+      <button class="btn" id="recheckGeo">Re-check Location</button>
+    </div>
 
-  <script>
-    /* Paste your Firebase config from console here */
-    const firebaseConfig = {
+    <div class="card">
+      <h3>3) Scan Dynamic QR</h3>
+      <div id="scanner" style="width:100%; max-width:420px"></div>
+      <button class="btn" id="startScan">Start Camera</button>
+      <button class="btn secondary" id="stopScan">Stop Camera</button>
+      <div id="scanMsg" class="muted" style="margin-top:8px">Scanner idle</div>
+      <button class="btn" id="markBtn">Mark my Attendance</button>
+    </div>
+
+    <div class="card">
+      <h3>Raise Token</h3>
+      <div class="muted">If you can’t mark attendance due to a genuine issue, raise a request to your faculty.</div>
+      <input id="rtReason" placeholder="Reason (mandatory)">
+      <button class="btn secondary" id="raiseBtn">Raise Token</button>
+      <div id="rtMsg" class="muted" style="margin-top:8px"></div>
+
+      <h4 style="margin-top:16px">My recent</h4>
+      <ul id="recent"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
   apiKey: "AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",
   authDomain: "project-qr-eceae.firebaseapp.com",
   projectId: "project-qr-eceae",
   storageBucket: "project-qr-eceae.firebasestorage.app",
   messagingSenderId: "527248340371",
   appId: "1:527248340371:web:870ca9bed83372e390e466"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
 
-    document.getElementById("googleBtn").onclick = async () => {
-      try {
-        await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-        document.getElementById("msg").innerText = "✅ Signed in as " + auth.currentUser.email;
-      } catch (e) {
-        document.getElementById("msg").innerText = "❌ Error: " + e.message;
-      }
+/*** 1) Auth ***/
+document.getElementById('googleBtn').onclick = async () => {
+  try{
+    await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    document.getElementById('authMsg').textContent = 'Signed in as ' + auth.currentUser.email;
+  }catch(e){ document.getElementById('authMsg').textContent = 'Error: ' + e.message; }
+};
+
+/*** 2) Device fingerprint (since MAC is not available on web) ***/
+function deviceId(){
+  const k='pqr_device_id'; let v=localStorage.getItem(k);
+  if(!v){ v=crypto.randomUUID(); localStorage.setItem(k,v); }
+  return v;
+}
+document.getElementById('devPill').textContent = 'Device: ' + deviceId();
+
+/*** 3) Geolocation ***/
+let lastGeo=null;
+async function getGeo(){
+  return new Promise((res,rej)=>{
+    if(!navigator.geolocation) return rej(new Error('Geolocation not supported'));
+    navigator.geolocation.getCurrentPosition(
+      p=>res(p),
+      err=>rej(err),
+      {enableHighAccuracy:true, timeout:15000, maximumAge:0}
+    );
+  });
+}
+async function refreshGeo(){
+  document.getElementById('geo').textContent = 'Checking location…';
+  try{
+    const pos = await getGeo();
+    lastGeo = {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      acc_m: pos.coords.accuracy,
+      ts_ms: Date.now()
     };
-  </script>
+    document.getElementById('geo').textContent =
+      `Lat ${lastGeo.lat.toFixed(5)}, Lng ${lastGeo.lng.toFixed(5)} (±${Math.round(lastGeo.acc_m)} m)`;
+    document.getElementById('geoPill').textContent = lastGeo.acc_m <= 80 ? 'GPS: OK' : 'GPS: Low accuracy';
+    document.getElementById('geoPill').className = 'pill ' + (lastGeo.acc_m <= 80 ? 'ok' : 'bad');
+  }catch(err){
+    document.getElementById('geo').textContent = 'Location error: ' + err.message;
+    document.getElementById('geoPill').textContent = 'GPS: Error';
+    document.getElementById('geoPill').className = 'pill bad';
+  }
+}
+refreshGeo();
+document.getElementById('recheckGeo').onclick = refreshGeo;
+
+// Haversine (meters)
+function distM(a,b){
+  const toR=x=>x*Math.PI/180, R=6371000;
+  const dLat=toR(b.lat-a.lat), dLng=toR(b.lng-a.lng);
+  const A=Math.sin(dLat/2)**2 + Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;
+  return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A));
+}
+
+/*** 4) Camera scanning (QR is text with base64 payload) ***/
+let html5Qr = null, lastToken=null, parsed=null;
+document.getElementById('startScan').onclick = async ()=>{
+  if(html5Qr) return;
+  const el = document.getElementById('scanner');
+  html5Qr = new Html5Qrcode("scanner");
+  try{
+    await html5Qr.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 260, height: 260 } },
+      text => {
+        lastToken = text.trim();
+        document.getElementById('scanMsg').textContent = 'QR captured';
+        try{
+          // expected formats:
+          // 1) "att://v1.<base64Payload>.<sig>" OR 2) "<base64Payload>"
+          const parts = lastToken.startsWith('att://') ? lastToken.split('.') : [null,lastToken];
+          const payload = atob(parts[1]);
+          parsed = JSON.parse(payload);
+          document.getElementById('scanMsg').textContent =
+            `Token ok · slot=${parsed.slot_id} · exp=${new Date(parsed.exp*1000).toLocaleTimeString()}`;
+        }catch(e){
+          parsed = null;
+          document.getElementById('scanMsg').textContent = 'Invalid token';
+        }
+      }
+    );
+  }catch(e){
+    document.getElementById('scanMsg').textContent = 'Camera error: ' + e.message;
+  }
+};
+document.getElementById('stopScan').onclick = async ()=>{
+  if(html5Qr){ await html5Qr.stop(); html5Qr.clear(); html5Qr=null; document.getElementById('scanMsg').textContent='Scanner stopped'; }
+};
+
+/*** 5) Mark attendance ***/
+document.getElementById('markBtn').onclick = async ()=>{
+  const u = auth.currentUser;
+  const reg = document.getElementById('reg').value.trim();
+  const pass= document.getElementById('pass').value.trim();
+  if(!u) return alert('Sign in with Google first');
+  if(!reg || !pass) return alert('Enter Reg No & Password');
+  if(!parsed) return alert('Scan the live QR first');
+
+  // Basic client checks (expiry + geofence later verified by faculty/slot data)
+  const nowS = Math.floor(Date.now()/1000);
+  if(parsed.exp && nowS > parsed.exp) return alert('QR expired — scan the latest QR on screen.');
+
+  // Fetch slot (contains class center & radius) to validate geofence client-side
+  const slotDoc = await db.collection('slots').doc(parsed.slot_id).get();
+  if(!slotDoc.exists){ return alert('Active slot not found'); }
+  const slot = slotDoc.data();
+  if(!lastGeo){ await refreshGeo(); }
+  if(!lastGeo){ return; }
+  const d = distM({lat:lastGeo.lat,lng:lastGeo.lng},{lat:slot.room_lat,lng:slot.room_lng});
+  if(d > (slot.radius_m||60)) return alert("You're not in classroom range to mark attendance. Please contact faculty!");
+
+  // Write checkin
+  await db.collection('checkins').add({
+    student_uid: u.uid, email: u.email, reg_no: reg,
+    slot_id: parsed.slot_id, class_id: slot.class_id || null,
+    ts_client: new Date(), ts_server: firebase.firestore.FieldValue.serverTimestamp(),
+    lat: lastGeo.lat, lng: lastGeo.lng, acc_m: lastGeo.acc_m,
+    device_id: deviceId(), token_id: parsed.token_id || null,
+    method: 'QR', result: 'OK'
+  });
+  alert('✅ Congrats! Your attendance has been marked successfully');
+};
+
+/*** 6) Raise Token ***/
+document.getElementById('raiseBtn').onclick = async ()=>{
+  const u = auth.currentUser; if(!u) return alert('Sign in first');
+  const reason = document.getElementById('rtReason').value.trim();
+  if(!reason) return alert('Reason is mandatory');
+  const slotId = parsed?.slot_id || null;
+  await db.collection('raise_tokens').add({
+    student_uid: u.uid, email:u.email, reason, state:'open',
+    slot_id: slotId, created_ts: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  document.getElementById('rtMsg').textContent = 'Token raised. Faculty will respond in real-time.';
+};
+</script>
 </body>
 </html>
