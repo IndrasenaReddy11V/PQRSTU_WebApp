@@ -113,7 +113,7 @@ const auth=firebase.auth(), db=firebase.firestore();
 /* ================== Helpers ================== */
 const qs=id=>document.getElementById(id), show=(id,on=true)=>qs(id).style.display=on?'block':'none';
 function deviceId(){const k='pqr_device';let v=localStorage.getItem(k);if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}return v;}
-let lastGeo=null;async function captureGeoSilently(){try{const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:1e4}));lastGeo={lat:p.coords.latitude,lng:p.coords.longitude,acc_m:p.coords.accuracy}}catch(_){/ignore/}}
+let lastGeo=null;async function captureGeoSilently(){try{const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:1e4}));lastGeo={lat:p.coords.latitude,lng:p.coords.longitude,acc_m:p.coords.accuracy}}catch(_){/*ignore*/}}
 
 /* ================== Auth ================== */
 async function providerSignIn(p){p.setCustomParameters({prompt:'select_account'});try{return await auth.signInWithPopup(p)}catch(e){if(e.code&&e.code.includes('popup')){await auth.signInWithRedirect(p);return null}else throw e}}
@@ -173,6 +173,7 @@ function setScanMsg(msg){ console.log('[Scanner]', msg); qs('scanMsg').textConte
 async function startAutoScanner(){
   if(typeof Html5Qrcode==='undefined'){ setScanMsg('❌ QR library not loaded!'); return; }
   try{
+    // Pre-warm permissions for reliability
     const pre = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment" }}); pre.getTracks().forEach(t=>t.stop());
     if(html5Qr){ try{await html5Qr.stop()}catch(_){} html5Qr.clear(); }
     html5Qr = new Html5Qrcode("scanner",{ verbose:false });
@@ -183,7 +184,7 @@ async function startAutoScanner(){
       { deviceId:{ exact: backCam.id } },
       { fps:18, qrbox:320, aspectRatio:1.0 },
       async (decodedText)=>{
-        if(!decodedText.startsWith('att://v1.')) return;
+        if(!decodedText.startsWith('att://v1.')) return; // ignore anything else
         try{
           lastToken = decodedText.trim();
           const base = lastToken.split('.')[1];
@@ -200,7 +201,7 @@ async function startAutoScanner(){
 }
 
 /* ================== Mark Attendance ================== */
-function distM(a,b){const toR=x=>x*Math.PI/180,R=6371000;const dLat=toR(b.lat-a.lat),dLng=toR(b.lng-a.lng);const A=Math.sin(dLat/2)*2+Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)*2;return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A));}
+function distM(a,b){const toR=x=>x*Math.PI/180,R=6371000;const dLat=toR(b.lat-a.lat),dLng=toR(b.lng-a.lng);const A=Math.sin(dLat/2)**2+Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A));}
 
 async function markAttendance(parsed){
   const u=auth.currentUser; if(!u){ alert('Please sign in first.'); return; }
@@ -232,7 +233,6 @@ async function markAttendance(parsed){
 qs('raiseBtn').onclick=async()=>{
   const u=auth.currentUser;if(!u) return alert('Sign in first');
   const reason=qs('rtReason').value.trim(); if(!reason) return alert('Reason is mandatory');
-  // include faculty_uid from the live slot + student profile info
   const prof = await db.collection('users').doc(u.uid).get();
   const reg_no = prof.exists ? (prof.data().reg_no||null) : null;
   const student_name = prof.exists ? (prof.data().name||null) : null;
