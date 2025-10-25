@@ -21,7 +21,6 @@
     padding:20px; display:flex; justify-content:center;
   }
   .wrap{ width:min(960px,100%) }
-
   .card{
     background:var(--card); border:1px solid var(--stroke);
     border-radius:16px; padding:18px; margin:18px 0;
@@ -30,8 +29,6 @@
   }
   @keyframes up{to{opacity:1; transform:none}}
   .muted{ color:var(--muted) }
-
-  /* Login */
   .loginbox{ max-width:480px; margin-inline:auto; text-align:center }
   .title{ font-weight:800; font-size:26px; margin:4px 0 }
   .subtitle{ color:var(--muted); margin:0 0 12px }
@@ -56,8 +53,6 @@
     </svg>");
     background-position:center; background-repeat:no-repeat; background-size:contain;
   }
-
-  /* Inputs */
   .grid{ display:grid; gap:16px; grid-template-columns: 1fr 1fr }
   @media (max-width:860px){ .grid{ grid-template-columns:1fr } }
   input,select{
@@ -72,10 +67,7 @@
     color:#fff; font-weight:800; cursor:pointer
   }
   .btn.alt{ background:linear-gradient(180deg, rgba(155,28,37,.45), rgba(155,28,37,.2)) }
-
   #scanner{ border-radius:12px; overflow:hidden; background:#0f1630; border:1px dashed rgba(255,255,255,.2) }
-
-  /* Success overlay */
   .success{ position:fixed; inset:0; background:rgba(5,20,5,.85); display:none; align-items:center; justify-content:center; z-index:9999 }
   .success > div{
     background:#0a7a33; border:2px solid #12d16a; color:#fff; padding:24px 28px; border-radius:16px;
@@ -138,7 +130,7 @@
   <!-- STEP 2: HOME -->
   <div id="homePanel" class="card" style="display:none">
     <h2 id="hi" style="margin:0 0 8px">Hi Student</h2>
-    <div class="muted">Welcome back. Keep your GPS on while marking attendance.</div>
+    <!-- Removed the GPS hint per your instruction -->
     <button class="btn" id="goMark" style="margin-top:12px; background:linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25))">
       Mark Your Attendance
     </button>
@@ -181,7 +173,7 @@
 <div class="success" id="successOverlay"><div>🎉 Congrats! Your attendance has been marked successfully</div></div>
 
 <script>
-/*** Firebase config — using your provided project ***/
+/*** Firebase config — your project ***/
 const firebaseConfig = {
   apiKey: "AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",
   authDomain: "project-qr-eceae.firebaseapp.com",
@@ -214,10 +206,10 @@ async function captureGeoSilently(){
   try{
     const p = await getGeoOnce();
     lastGeo = { lat:p.coords.latitude, lng:p.coords.longitude, acc_m:p.coords.accuracy, ts_ms:Date.now() };
-  }catch(_){ /* user denied — continue */ }
+  }catch(_){ /* ignore */ }
 }
 
-/*** popup→redirect fallback so buttons always work ***/
+/*** popup→redirect fallback ***/
 async function signInWithProvider(provider){
   provider.setCustomParameters({ prompt: 'select_account' });
   try{
@@ -257,14 +249,14 @@ qs('microsoftBtn').onclick = async ()=>{
     const r = await signInWithProvider(ms);
     if(r && r.user) onSignedIn('Microsoft');
   }catch(e){
-    qs('authMsg').textContent = 'Error: '+e.message + ' (Make sure Microsoft provider is enabled and Azure app configured in Firebase Auth).';
+    qs('authMsg').textContent = 'Error: '+e.message + ' (Enable Microsoft in Firebase & Azure app configured).';
   }
 };
 
 /*** after sign-in ***/
 async function onSignedIn(source){
   const u = auth.currentUser;
-  qs('authMsg').textContent = Signed in as ${u.email};
+  qs('authMsg').textContent = `Signed in as ${u.email}`;
   // audit login
   try{
     await db.collection('login_logs').add({
@@ -305,25 +297,32 @@ qs('signupBtn').onclick = async ()=>{
   checkLiveSession();
 };
 
-/*** live session check ***/
+/*** live session check — FIXED to status=='live' & no orderBy (no index needed) ***/
 let currentSlot=null;
 async function checkLiveSession(){
   qs('liveHint').textContent = 'Checking live attendance…';
-  const snap = await db.collection('slots').where('status','==','active').orderBy('start_ts','desc').limit(1).get();
-  if(snap.empty){
-    qs('liveHint').textContent = 'No attendance is live now';
-    qs('goMark').onclick = ()=> alert('No attendance is on live now!');
-    qs('goMark').style.background = 'linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25))';
-  }else{
-    currentSlot = { id:snap.docs[0].id, ...snap.docs[0].data() };
-    qs('liveHint').textContent = 'Attendance is live now! You may mark your attendance.';
-    qs('goMark').style.background = 'linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))';
-    qs('goMark').onclick = ()=>{
-      show('homePanel', false); show('attPanel', true);
-      db.collection('users').doc(auth.currentUser.uid).get().then(p=>{
-        if(p.exists){ qs('areg').value = p.data().reg_no; }
-      });
-    };
+  try{
+    const snap = await db.collection('slots').where('status','==','live').limit(1).get();
+    if(snap.empty){
+      qs('liveHint').textContent = 'No attendance is live now';
+      qs('goMark').onclick = ()=> alert('⚠️ No attendance is live right now! Please wait for your faculty to start the session.');
+      qs('goMark').style.background = 'linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25))';
+      currentSlot = null;
+    }else{
+      currentSlot = { id:snap.docs[0].id, ...snap.docs[0].data() };
+      qs('liveHint').textContent = 'Attendance is live now! You may mark your attendance.';
+      qs('goMark').style.background = 'linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))';
+      qs('goMark').onclick = ()=>{
+        show('homePanel', false); show('attPanel', true);
+        db.collection('users').doc(auth.currentUser.uid).get().then(p=>{
+          if(p.exists){ qs('areg').value = p.data().reg_no; }
+        });
+      };
+    }
+  }catch(err){
+    console.error('checkLiveSession error:', err);
+    qs('liveHint').textContent = 'Could not check session (network/index error).';
+    qs('goMark').onclick = () => alert('Could not check session yet. Try refresh.');
   }
 }
 
@@ -341,7 +340,7 @@ qs('startScan').onclick = async ()=>{
         try{
           const parts = lastToken.startsWith('att://') ? lastToken.split('.') : [null,lastToken];
           const payload = atob(parts[1]); parsed = JSON.parse(payload);
-          qs('scanMsg').textContent = Token OK · slot=${parsed.slot_id} · exp=${new Date(parsed.exp*1000).toLocaleTimeString()};
+          qs('scanMsg').textContent = `Token OK · slot=${parsed.slot_id} · exp=${new Date(parsed.exp*1000).toLocaleTimeString()}`;
         }catch(e){ parsed=null; qs('scanMsg').textContent = 'Invalid token'; }
       }
     );
@@ -351,10 +350,14 @@ qs('stopScan').onclick = async ()=>{
   if(html5Qr){ await html5Qr.stop(); html5Qr.clear(); html5Qr=null; qs('scanMsg').textContent='Scanner stopped'; }
 };
 
-// distance meters
-function distM(a,b){ const toR=x=>x*Math.PI/180, R=6371000; const dLat=toR(b.lat-a.lat), dLng=toR(b.lng-a.lng);
-  const A=Math.sin(dLat/2)*2 + Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)*2;
-  return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A)); }
+/*** Correct Haversine (meters) ***/
+function distM(a,b){
+  const toR=x=>x*Math.PI/180, R=6371000;
+  const dLat=toR(b.lat-a.lat), dLng=toR(b.lng-a.lng);
+  const lat1=toR(a.lat), lat2=toR(b.lat);
+  const A = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
+  return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A));
+}
 
 qs('markBtn').onclick = async ()=>{
   const u = auth.currentUser; if(!u) return alert('Sign in first');
@@ -395,7 +398,7 @@ qs('raiseBtn').onclick = async ()=>{
   qs('rtMsg').textContent = 'Token raised. Faculty will see it instantly.';
 };
 
-// Pre-request location permission for smoother flow
+// kick off
 captureGeoSilently();
 </script>
 </body>
