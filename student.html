@@ -18,34 +18,58 @@
     padding:20px;display:flex;justify-content:center
   }
   .wrap{width:min(960px,100%)}
-  .card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:18px;margin:18px 0;
-        box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 50px rgba(0,0,0,.24);
-        opacity:0;transform:translateY(8px);animation:up .55s .1s forwards}
+  .card{
+    background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:18px;margin:18px 0;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 50px rgba(0,0,0,.24);
+    opacity:0;transform:translateY(8px);animation:up .55s .1s forwards
+  }
   @keyframes up{to{opacity:1;transform:none}}
   .muted{color:var(--muted)}
   .loginbox{max-width:480px;margin-inline:auto;text-align:center}
-  .title{font-weight:800;font-size:26px;margin:4px 0}.subtitle{color:var(--muted);margin:0 0 12px}
+  .title{font-weight:800;font-size:26px;margin:4px 0}
+  .subtitle{color:var(--muted);margin:0 0 12px}
   .sso{display:flex;flex-direction:column;gap:10px;margin-top:10px}
-  .sbtn{display:flex;align-items:center;gap:12px;justify-content:center;width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));color:#fff;font-weight:800;cursor:pointer}
+  .sbtn{
+    display:flex;align-items:center;gap:12px;justify-content:center;width:100%;
+    padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);
+    background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+    color:#fff;font-weight:800;cursor:pointer
+  }
   .ico{width:18px;height:18px;display:inline-block}
   .ico.g{background:url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') center/contain no-repeat}
-  .ico.ms{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 480'><rect x='24' y='24' width='204' height='204' fill='%23f25022'/><rect x='252' y='24' width='204' height='204' fill='%237eb900'/><rect x='24' y='252' width='204' height='204' fill='%2300a4ef'/><rect x='252' y='252' width='204' height='204' fill='%23ffb900'/></svg>");background-position:center;background-repeat:no-repeat;background-size:contain}
-  .grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}@media (max-width:860px){.grid{grid-template-columns:1fr}}
-  input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #304;background:#0f1630;color:#eaf0ff}
+  .ico.ms{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 480'><rect x='24' y='24' width='204' height='204' fill='%23f25022'/><rect x='252' y='24' width='204' height='204' fill='%237eb900'/><rect x='24' y='252' width='204' height='204' fill='%2300a4ef'/><rect x='252' y='252' width='204' height='204' fill='%23ffb900'/></svg>");
+    background-position:center;background-repeat:no-repeat;background-size:contain
+  }
+  .grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+  @media (max-width:860px){.grid{grid-template-columns:1fr}}
+  input,select{
+    width:100%;padding:12px;border-radius:10px;border:1px solid #304;background:#0f1630;color:#eaf0ff
+  }
   label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .btn{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(180deg, rgba(61,109,242,.3), rgba(61,109,242,.15));color:#fff;font-weight:800;cursor:pointer}
+  .btn{
+    width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);
+    background:linear-gradient(180deg, rgba(61,109,242,.3), rgba(61,109,242,.15));
+    color:#fff;font-weight:800;cursor:pointer
+  }
   .btn.alt{background:linear-gradient(180deg, rgba(155,28,37,.45), rgba(155,28,37,.2))}
   #scanner{border-radius:12px;overflow:hidden;background:#0f1630;border:1px dashed rgba(255,255,255,.2)}
-  .success{position:fixed;inset:0;background:rgba(5,20,5,.85);display:none;align-items:center;justify-content:center;z-index:9999}
-  .success>div{background:#0a7a33;border:2px solid #12d16a;color:#fff;padding:24px 28px;border-radius:16px;font-size:20px;font-weight:800;box-shadow:0 24px 80px rgba(0,0,0,.5);text-align:center;animation:pop .5s ease}
+  .success{
+    position:fixed;inset:0;background:rgba(5,20,5,.85);
+    display:none;align-items:center;justify-content:center;z-index:9999
+  }
+  .success>div{
+    background:#0a7a33;border:2px solid #12d16a;color:#fff;padding:24px 28px;border-radius:16px;
+    font-size:20px;font-weight:800;box-shadow:0 24px 80px rgba(0,0,0,.5);text-align:center;animation:pop .5s ease
+  }
   @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- Login panel -->
+  <!-- SSO -->
   <div id="authPanel" class="card loginbox">
     <div class="title">Welcome to PQRSTU</div>
     <div class="subtitle">Log in to your account and start marking your attendance</div>
@@ -56,14 +80,21 @@
     <div id="authMsg" class="muted" style="margin-top:12px">Not signed in</div>
   </div>
 
-  <!-- Profile -->
+  <!-- One-time profile -->
   <div id="signupPanel" class="card" style="display:none">
     <h2 style="margin:0 0 10px">Complete your profile (one-time)</h2>
     <div class="grid">
-      <div><label>Full Name (as per SSC)</label><input id="name" placeholder="e.g., Indra Reddy"/></div>
-      <div><label>Department</label><select id="dept"><option value="">Select department</option><option>MBA in Sustainability Management</option></select></div>
-      <div><label>Registration Number <small class="muted">(e.g., 2400249MBS)</small></label><input id="reg" maxlength="10" placeholder="2400249MBS"/></div>
-      <div><label>Date of Birth <small class="muted">(e.g., 27Aug2002)</small></label><input id="dob" maxlength="9" placeholder="27Aug2002"/></div>
+      <div><label>Full Name (as per SSC)</label><input id="name" placeholder="e.g., Indra Reddy"></div>
+      <div><label>Department</label>
+        <select id="dept">
+          <option value="">Select department</option>
+          <option>MBA in Sustainability Management</option>
+        </select>
+      </div>
+      <div><label>Registration Number <small class="muted">(10 chars, last 3 CAPS e.g., 2400249MBS)</small></label>
+        <input id="reg" placeholder="2400249MBS" maxlength="10"></div>
+      <div><label>Date of Birth <small class="muted">(DDMonYYYY e.g., 27Aug2002)</small></label>
+        <input id="dob" placeholder="27Aug2002" maxlength="9"></div>
     </div>
     <button class="btn" id="signupBtn" style="margin-top:10px">Submit</button>
     <div id="signupMsg" class="muted" style="margin-top:8px"></div>
@@ -71,18 +102,21 @@
 
   <!-- Home -->
   <div id="homePanel" class="card" style="display:none">
-    <h2 id="hi">Hi Student</h2>
-    <button class="btn" id="goMark" style="margin-top:12px;background:linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25))">Mark Your Attendance</button>
+    <h2 id="hi" style="margin:0 0 8px">Hi Student</h2>
+    <button class="btn" id="goMark" style="margin-top:12px;background:linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25))">
+      Mark Your Attendance
+    </button>
     <div id="liveHint" class="muted" style="margin-top:6px"></div>
   </div>
 
   <!-- Attendance -->
   <div id="attPanel" class="card" style="display:none">
-    <h2>Attendance · Verify & Scan</h2>
+    <h2 style="margin:0 0 10px">Attendance · Verify & Scan</h2>
     <div class="grid">
-      <div><label>Registration No</label><input id="areg" maxlength="10"/></div>
-      <div><label>Password (DOB format)</label><input id="apass" maxlength="9"/></div>
+      <div><label>Registration No</label><input id="areg" placeholder="2400249MBS" maxlength="10"></div>
+      <div><label>Password (DOB format)</label><input id="apass" placeholder="27Aug2002" maxlength="9"></div>
     </div>
+
     <h3 style="margin:14px 0 8px">Scan live dynamic QR</h3>
     <div id="scanner" style="width:100%;max-width:420px"></div>
     <div style="display:flex;gap:8px;margin-top:8px">
@@ -92,112 +126,254 @@
     <div id="scanMsg" class="muted" style="margin-top:8px">Scanner idle</div>
     <button class="btn" id="markBtn" style="margin-top:10px">Submit Attendance</button>
 
-    <h3 style="margin:18px 0 8px">Raise Token (if issue)</h3>
-    <div class="row"><input id="rtReason" placeholder="Reason (mandatory)"><button class="btn alt" id="raiseBtn">Raise Token</button></div>
+    <h3 style="margin:18px 0 8px">Raise Token (if you face an issue)</h3>
+    <div class="row">
+      <input id="rtReason" placeholder="Reason (mandatory)">
+      <button class="btn alt" id="raiseBtn">Raise Token</button>
+    </div>
     <div id="rtMsg" class="muted" style="margin-top:8px"></div>
   </div>
 </div>
 
 <div class="success" id="successOverlay"><div>🎉 Congrats! Your attendance has been marked successfully</div></div>
 
-<!-- Firebase + Html5Qrcode scripts -->
+<!-- Load libs AFTER HTML: Firebase + Html5Qrcode -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.9/html5-qrcode.min.js"></script>
 
 <script>
-/* Firebase setup */
-const firebaseConfig={apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",authDomain:"project-qr-eceae.firebaseapp.com",projectId:"project-qr-eceae",storageBucket:"project-qr-eceae.firebasestorage.app",messagingSenderId:"527248340371",appId:"1:527248340371:web:870ca9bed83372e390e466"};
+/* Firebase */
+const firebaseConfig={
+  apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",
+  authDomain:"project-qr-eceae.firebaseapp.com",
+  projectId:"project-qr-eceae",
+  storageBucket:"project-qr-eceae.firebasestorage.app",
+  messagingSenderId:"527248340371",
+  appId:"1:527248340371:web:870ca9bed83372e390e466"
+};
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore();
 
 /* Helpers */
-const qs=id=>document.getElementById(id), show=(id,on=true)=>qs(id).style.display=on?'block':'none';
-function deviceId(){const k='pqr_device';let v=localStorage.getItem(k);if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}return v}
+const qs=id=>document.getElementById(id);
+const show=(id,yes=true)=>qs(id).style.display = yes ? 'block' : 'none';
+function deviceId(){const k='pqr_device_id';let v=localStorage.getItem(k);if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}return v}
 
-/* Silent GPS capture */
+/* Silent GPS */
 let lastGeo=null;
-async function captureGeoSilently(){try{const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:1e4}));lastGeo={lat:p.coords.latitude,lng:p.coords.longitude,acc_m:p.coords.accuracy}}catch(_){}}
+async function captureGeoSilently(){
+  try{
+    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:10000}));
+    lastGeo={lat:pos.coords.latitude,lng:pos.coords.longitude,acc_m:pos.coords.accuracy,ts_ms:Date.now()};
+  }catch(_){}
+}
 
-/* Sign-in */
-async function providerSignIn(p){p.setCustomParameters({prompt:'select_account'});try{return await auth.signInWithPopup(p)}catch(e){if(e.code.includes('popup')){await auth.signInWithRedirect(p);return null}else throw e}}
-qs('googleBtn').onclick=async()=>{await captureGeoSilently();const gp=new firebase.auth.GoogleAuthProvider();const r=await providerSignIn(gp);if(r&&r.user)onLogin()}
-qs('microsoftBtn').onclick=async()=>{await captureGeoSilently();const ms=new firebase.auth.OAuthProvider('microsoft.com');ms.addScope('openid');ms.addScope('profile');ms.addScope('email');const r=await providerSignIn(ms);if(r&&r.user)onLogin()}
+/* Auth (Google/Microsoft) */
+async function signInWithProvider(provider){
+  provider.setCustomParameters({prompt:'select_account'});
+  try{
+    return await auth.signInWithPopup(provider);
+  }catch(e){
+    if(e.code && (e.code.includes('popup') || e.code.includes('unsupported'))){
+      await auth.signInWithRedirect(provider); return null;
+    }
+    throw e;
+  }
+}
+qs('googleBtn').onclick=async()=>{
+  await captureGeoSilently();
+  const gp=new firebase.auth.GoogleAuthProvider();
+  const r=await signInWithProvider(gp);
+  if(r && r.user) onSignedIn();
+};
+qs('microsoftBtn').onclick=async()=>{
+  await captureGeoSilently();
+  const ms=new firebase.auth.OAuthProvider('microsoft.com');
+  ms.addScope('openid'); ms.addScope('profile'); ms.addScope('email');
+  const r=await signInWithProvider(ms);
+  if(r && r.user) onSignedIn();
+};
 
-async function onLogin(){const u=auth.currentUser;qs('authMsg').textContent='Signed in as '+u.email;const d=await db.collection('users').doc(u.uid).get();if(d.exists){qs('hi').textContent='Hi '+(d.data().name||'Student');show('authPanel',false);show('homePanel',true);checkLive()}else{show('authPanel',false);show('signupPanel',true)}}
+async function onSignedIn(){
+  const u=auth.currentUser;
+  qs('authMsg').textContent='Signed in as '+u.email;
+  const doc=await db.collection('users').doc(u.uid).get();
+  if(doc.exists){
+    qs('hi').textContent='Hi '+(doc.data().name||'Student');
+    show('authPanel',false); show('signupPanel',false); show('homePanel',true);
+    checkLiveSession();
+  }else{
+    show('authPanel',false); show('signupPanel',true);
+  }
+}
 
 /* Signup */
-qs('signupBtn').onclick=async()=>{const u=auth.currentUser;if(!u)return alert('Sign in first');const name=qs('name').value.trim(),dept=qs('dept').value.trim(),reg=qs('reg').value.trim(),dob=qs('dob').value.trim();if(!name||!dept||!reg||!dob)return qs('signupMsg').textContent='All fields mandatory';if(!/^[0-9]{7}[A-Z]{3}$/.test(reg))return qs('signupMsg').textContent='Invalid Reg No';if(!/^[0-9]{2}[A-Z][a-z]{2}[0-9]{4}$/.test(dob))return qs('signupMsg').textContent='Invalid DOB format';await db.collection('users').doc(u.uid).set({uid:u.uid,email:u.email,name,department:dept,reg_no:reg,dob,device_id:deviceId(),created_at:firebase.firestore.FieldValue.serverTimestamp()});qs('hi').textContent='Hi '+name;show('signupPanel',false);show('homePanel',true);checkLive()}
+function validReg(s){ return /^[0-9]{7}[A-Z]{3}$/.test(s); }
+function validDob(s){ return /^(0[1-9]|[12][0-9]|3[01])[A-Z][a-z]{2}[0-9]{4}$/.test(s); }
+qs('signupBtn').onclick=async()=>{
+  const u=auth.currentUser; if(!u) return alert('Sign in first');
+  const name=qs('name').value.trim(), dept=qs('dept').value.trim(),
+        reg=qs('reg').value.trim(), dob=qs('dob').value.trim();
+  if(!name||!dept||!reg||!dob) return qs('signupMsg').textContent='All fields are mandatory';
+  if(!validReg(reg)) return qs('signupMsg').textContent='Registration No format invalid (e.g., 2400249MBS)';
+  if(!validDob(dob)) return qs('signupMsg').textContent='DOB format invalid (e.g., 27Aug2002)';
+  await db.collection('users').doc(u.uid).set({
+    uid:u.uid,email:u.email,name,department:dept,reg_no:reg,dob,
+    device_id_primary:deviceId(),
+    created_at:firebase.firestore.FieldValue.serverTimestamp(),
+    role:'student'
+  });
+  qs('hi').textContent='Hi '+name;
+  show('signupPanel',false); show('homePanel',true);
+  checkLiveSession();
+};
 
-/* Check live attendance */
+/* Live session check */
 let currentSlot=null;
-async function checkLive(){qs('liveHint').textContent='Checking...';const s=await db.collection('slots').where('status','==','live').limit(1).get();if(s.empty){qs('liveHint').textContent='No attendance is live now';qs('goMark').onclick=()=>alert('⚠️ No attendance is on live now!');currentSlot=null}else{currentSlot={id:s.docs[0].id,...s.docs[0].data()};qs('liveHint').textContent='Attendance is live now!';qs('goMark').style.background='linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))';qs('goMark').onclick=()=>{show('homePanel',false);show('attPanel',true);db.collection('users').doc(auth.currentUser.uid).get().then(p=>{if(p.exists)qs('areg').value=p.data().reg_no})}}}
+async function checkLiveSession(){
+  qs('liveHint').textContent='Checking live attendance…';
+  try{
+    const snap=await db.collection('slots').where('status','==','live').limit(1).get();
+    if(snap.empty){
+      qs('liveHint').textContent='No attendance is live now';
+      qs('goMark').onclick=()=>alert('⚠️ No attendance is on live now!');
+      currentSlot=null;
+    }else{
+      currentSlot={id:snap.docs[0].id, ...snap.docs[0].data()};
+      qs('liveHint').textContent='Attendance is live now! You may mark your attendance.';
+      qs('goMark').style.background='linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))';
+      qs('goMark').onclick=()=>{
+        show('homePanel',false); show('attPanel',true);
+        db.collection('users').doc(auth.currentUser.uid).get().then(p=>{
+          if(p.exists) qs('areg').value=p.data().reg_no;
+        });
+      };
+    }
+  }catch(err){
+    qs('liveHint').textContent='Could not check live session. Try refresh.';
+  }
+}
 
-/* QR Scanner Fix */
-let html5Qr=null,lastToken=null,parsed=null;
-function setScanMsg(m){qs('scanMsg').textContent=m}
+/* QR Scanner — auto-detect dynamic token */
+let html5Qr=null, lastToken=null, parsed=null;
+function setScanMsg(m){ qs('scanMsg').textContent=m; }
 
 qs('startScan').onclick=async()=>{
-  setScanMsg('Starting camera...');
-  if(typeof Html5Qrcode==='undefined'){return setScanMsg('❌ Html5Qrcode library not loaded! Check internet connection.')}
+  if(typeof Html5Qrcode==='undefined'){
+    return setScanMsg('❌ Html5Qrcode library not loaded (check internet).');
+  }
   try{
+    // trigger permission inside click
     const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
     stream.getTracks().forEach(t=>t.stop());
+
     html5Qr=new Html5Qrcode("scanner",{verbose:false});
     const cams=await Html5Qrcode.getCameras();
-    if(!cams.length)return setScanMsg('No cameras found');
-    const camId=(cams.find(c=>/back|rear|environment/i.test(c.label))||cams[0]).id;
-    await html5Qr.start({deviceId:{exact:camId}},{fps:10,qrbox:{width:250,height:250}},
-      txt=>{
-        lastToken=txt.trim();
-        try{const part=lastToken.split('.')[1];parsed=JSON.parse(atob(part));setScanMsg('QR OK for slot '+parsed.slot_id)}catch{parsed=null;setScanMsg('Invalid QR');}
-      },()=>{});
-    setScanMsg('Camera active — scan the QR now.');
-  }catch(e){setScanMsg('Camera startup failed: '+(e.message||e))}
+    if(!cams.length) return setScanMsg('No cameras found');
+    const back=cams.find(c=>/back|rear|environment/i.test(c.label));
+    const camId=(back||cams[0]).id;
+
+    await html5Qr.start(
+      {deviceId:{exact:camId}},
+      {fps:10,qrbox:{width:260,height:260}},
+      (text)=>{
+        const token=text.trim();
+        // Expect "att://v1.<base64Payload>.<sig>"
+        if(!token.startsWith('att://v1.')){
+          setScanMsg('Non-attendance QR detected — point to the LIVE QR on the projector.');
+          parsed=null; lastToken=null; return;
+        }
+        lastToken=token;
+        try{
+          const parts=token.split('.');
+          const payloadB64=parts[1];
+          const payload=JSON.parse(atob(payloadB64));
+          parsed=payload;
+          setScanMsg(`✅ QR recognized · slot=${payload.slot_id} · exp=${new Date(payload.exp*1000).toLocaleTimeString()}`);
+        }catch(e){
+          parsed=null; setScanMsg('Invalid/Corrupt QR payload');
+        }
+      },
+      ()=>{}
+    );
+    setScanMsg('Camera started — point to the LIVE QR.');
+  }catch(e){
+    setScanMsg('Camera startup failed: '+(e?.message||e));
+    if(html5Qr){ try{await html5Qr.stop(); html5Qr.clear();}catch{} html5Qr=null; }
+  }
 };
 
 qs('stopScan').onclick=async()=>{
-  if(html5Qr){try{await html5Qr.stop();html5Qr.clear();setScanMsg('Scanner stopped')}catch(e){setScanMsg('Error: '+e.message)}finally{html5Qr=null}}
+  if(!html5Qr) return setScanMsg('Scanner not running');
+  try{ await html5Qr.stop(); html5Qr.clear(); setScanMsg('Scanner stopped'); }
+  catch(e){ setScanMsg('Error stopping: '+(e?.message||e)); }
+  finally{ html5Qr=null; }
 };
 
-/* Distance check */
-function distM(a,b){const toR=x=>x*Math.PI/180,R=6371000,dLat=toR(b.lat-a.lat),dLng=toR(b.lng-a.lng),A=Math.sin(dLat/2)**2+Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A))}
+/* Distance */
+function distM(a,b){
+  const toR=x=>x*Math.PI/180, R=6371000;
+  const dLat=toR(b.lat-a.lat), dLng=toR(b.lng-a.lng);
+  const A=Math.sin(dLat/2)**2 + Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;
+  return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A));
+}
 
 /* Submit Attendance */
 qs('markBtn').onclick=async()=>{
-  const u=auth.currentUser;if(!u)return alert('Sign in first');
-  const reg=qs('areg').value.trim(),dob=qs('apass').value.trim();
-  if(!/^[0-9]{7}[A-Z]{3}$/.test(reg))return alert('Invalid Reg No');if(!/^[0-9]{2}[A-Z][a-z]{2}[0-9]{4}$/.test(dob))return alert('Invalid DOB format');
-  if(!parsed)return alert('Scan the live QR first');
-  if(!currentSlot||parsed.slot_id!==currentSlot.id)return alert('Invalid or expired QR');
-  await captureGeoSilently();
-  if(currentSlot.room_lat){const d=distM({lat:lastGeo?.lat||0,lng:lastGeo?.lng||0},{lat:currentSlot.room_lat,lng:currentSlot.room_lng});if(d>(currentSlot.radius_m||60))return alert('You are not in classroom range');}
-  await db.collection('checkins').add({student_uid:u.uid,email:u.email,reg_no:reg,slot_id:currentSlot.id,ts_client:new Date(),ts_server:firebase.firestore.FieldValue.serverTimestamp(),lat:lastGeo?.lat||null,lng:lastGeo?.lng||null,acc_m:lastGeo?.acc_m||null,device_id:deviceId(),token_id:parsed.token_id||null,method:'QR',result:'OK'});
-  qs('successOverlay').style.display='flex';setTimeout(()=>qs('successOverlay').style.display='none',1800);
+  const u=auth.currentUser; if(!u) return alert('Sign in first');
+  const reg=qs('areg').value.trim(), dob=qs('apass').value.trim();
+  if(!validReg(reg)) return alert('Registration No format invalid');
+  if(!validDob(dob)) return alert('Password (DOB) format invalid');
+  if(!parsed) return alert('Scan the live QR first');
+  if(!currentSlot || parsed.slot_id!==currentSlot.id) return alert('This QR is not for the active session');
+  if(!lastGeo) await captureGeoSilently();
+  if(currentSlot.room_lat && currentSlot.room_lng){
+    const d=distM({lat:lastGeo?.lat||0,lng:lastGeo?.lng||0},{lat:currentSlot.room_lat,lng:currentSlot.room_lng});
+    if(!lastGeo || d>(currentSlot.radius_m||60))
+      return alert("You're not in classroom range to mark your attendance. Please contact faculty!");
+  }
+  await db.collection('checkins').add({
+    student_uid:u.uid, email:u.email, reg_no:reg,
+    slot_id:currentSlot.id, class_id:currentSlot.class_id||null,
+    ts_client:new Date(), ts_server:firebase.firestore.FieldValue.serverTimestamp(),
+    lat:lastGeo?.lat||null, lng:lastGeo?.lng||null, acc_m:lastGeo?.acc_m||null,
+    device_id:deviceId(), token_id:parsed.token_id||null, method:'QR', result:'OK'
+  });
+  document.getElementById('successOverlay').style.display='flex';
+  setTimeout(()=>{ document.getElementById('successOverlay').style.display='none'; }, 1800);
 };
 
 /* Raise Token */
 qs('raiseBtn').onclick=async()=>{
-  const u=auth.currentUser;if(!u)return alert('Sign in first');
-  const r=qs('rtReason').value.trim();if(!r)return alert('Reason is mandatory');
-  await db.collection('raise_tokens').add({student_uid:u.uid,email:u.email,reason:r,state:'open',slot_id:currentSlot?.id||parsed?.slot_id||null,created_ts:firebase.firestore.FieldValue.serverTimestamp()});
-  qs('rtMsg').textContent='Token raised. Faculty notified.';
+  const u=auth.currentUser; if(!u) return alert('Sign in first');
+  const reason=qs('rtReason').value.trim(); if(!reason) return alert('Reason is mandatory');
+  await db.collection('raise_tokens').add({
+    student_uid:u.uid, email:u.email, reason, state:'open',
+    slot_id: currentSlot?.id || parsed?.slot_id || null,
+    created_ts: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  qs('rtMsg').textContent='Token raised. Faculty will see it instantly.';
 };
 
-/* Live feedback for token result */
+/* Real-time feedback if faculty resolves token */
 auth.onAuthStateChanged(u=>{
-  if(!u)return;
-  db.collection('raise_tokens').where('student_uid','==',u.uid)
-  .onSnapshot(s=>s.docChanges().forEach(ch=>{
-    if(ch.type==='modified'){
-      const d=ch.doc.data();
-      if(d.state==='accepted')alert('✅ Your attendance has been approved!');
-      if(d.state==='denied')alert('❌ Token rejected by faculty');
-    }
-  }));
+  if(!u) return;
+  db.collection('raise_tokens')
+    .where('student_uid','==',u.uid)
+    .onSnapshot(snap=>{
+      snap.docChanges().forEach(ch=>{
+        if(ch.type==='modified'){
+          const d=ch.doc.data();
+          if(d.state==='accepted') alert('✅ Your attendance has been approved by faculty!');
+          if(d.state==='denied')   alert('❌ Sorry, your token was rejected.');
+        }
+      });
+    });
 });
 
+/* Kick off */
 captureGeoSilently();
 </script>
 </body>
