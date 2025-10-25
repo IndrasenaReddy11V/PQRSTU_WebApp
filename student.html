@@ -43,9 +43,7 @@
   }
   .grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}
   @media (max-width:860px){.grid{grid-template-columns:1fr}}
-  input,select{
-    width:100%;padding:12px;border-radius:10px;border:1px solid #304;background:#0f1630;color:#eaf0ff
-  }
+  input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #304;background:#0f1630;color:#eaf0ff}
   label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .btn{
@@ -120,7 +118,7 @@
     <h3 style="margin:14px 0 8px">Scan live dynamic QR</h3>
     <div id="scanner" style="width:100%;max-width:420px"></div>
     <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn" id="startScan">Start Camera</button>
+      <button class="btn" id="startScan" disabled>Loading scanner…</button>
       <button class="btn alt" id="stopScan">Stop Camera</button>
     </div>
     <div id="scanMsg" class="muted" style="margin-top:8px">Scanner idle</div>
@@ -137,11 +135,38 @@
 
 <div class="success" id="successOverlay"><div>🎉 Congrats! Your attendance has been marked successfully</div></div>
 
-<!-- Load libs AFTER HTML: Firebase + Html5Qrcode -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.9/html5-qrcode.min.js"></script>
+
+<script>
+/* ------- Resilient loader for Html5Qrcode ------- */
+const HTML5QRCODE_URLS = [
+  'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.9/html5-qrcode.min.js',
+  'https://unpkg.com/html5-qrcode@2.3.9/minified/html5-qrcode.min.js',
+  'https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js'
+];
+function loadHtml5Qrcode(){
+  return new Promise((resolve, reject)=>{
+    if (window.Html5Qrcode) return resolve();
+    let i = 0;
+    const tryLoad = () => {
+      if (i >= HTML5QRCODE_URLS.length) return reject(new Error('All CDNs failed'));
+      const url = HTML5QRCODE_URLS[i++];
+      const s = document.createElement('script');
+      s.src = url; s.async = true; s.defer = true; s.crossOrigin = "anonymous";
+      let done = false;
+      s.onload = () => { done = true; window.Html5Qrcode ? resolve() : reject(new Error('Loaded but not defined')); };
+      s.onerror = () => { if (!done) tryLoad(); };
+      // timeout fallback
+      setTimeout(()=>{ if (!done && !window.Html5Qrcode) { s.remove(); tryLoad(); } }, 7000);
+      document.head.appendChild(s);
+    };
+    tryLoad();
+  });
+}
+</script>
 
 <script>
 /* Firebase */
@@ -256,16 +281,35 @@ async function checkLiveSession(){
   }
 }
 
-/* QR Scanner — auto-detect dynamic token */
+/* QR Scanner */
 let html5Qr=null, lastToken=null, parsed=null;
 function setScanMsg(m){ qs('scanMsg').textContent=m; }
 
+async function ensureScannerLoaded(){
+  try{
+    await loadHtml5Qrcode();
+    qs('startScan').disabled = false;
+    qs('startScan').textContent = 'Start Camera';
+    if (!qs('scanMsg').dataset.initShown) {
+      qs('scanMsg').dataset.initShown = "1";
+      setScanMsg('Scanner ready.');
+    }
+  }catch(e){
+    qs('startScan').disabled = true;
+    qs('startScan').textContent = 'Scanner failed to load';
+    setScanMsg('❌ Html5Qrcode library not loaded (network/CSP issue).');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', ensureScannerLoaded);
+
 qs('startScan').onclick=async()=>{
-  if(typeof Html5Qrcode==='undefined'){
-    return setScanMsg('❌ Html5Qrcode library not loaded (check internet).');
+  // if user clicked too fast before loader finished, try again
+  if (typeof Html5Qrcode === 'undefined'){
+    await ensureScannerLoaded();
+    if (typeof Html5Qrcode === 'undefined') return;
   }
   try{
-    // trigger permission inside click
     const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
     stream.getTracks().forEach(t=>t.stop());
 
@@ -280,11 +324,7 @@ qs('startScan').onclick=async()=>{
       {fps:10,qrbox:{width:260,height:260}},
       (text)=>{
         const token=text.trim();
-        // Expect "att://v1.<base64Payload>.<sig>"
-        if(!token.startsWith('att://v1.')){
-          setScanMsg('Non-attendance QR detected — point to the LIVE QR on the projector.');
-          parsed=null; lastToken=null; return;
-        }
+        if(!token.startsWith('att://v1.')){ parsed=null; lastToken=null; return setScanMsg('Show the LIVE attendance QR'); }
         lastToken=token;
         try{
           const parts=token.split('.');
@@ -373,8 +413,9 @@ auth.onAuthStateChanged(u=>{
     });
 });
 
-/* Kick off */
+/* Kick off: preload scanner & GPS */
 captureGeoSilently();
+ensureScannerLoaded();
 </script>
 </body>
 </html>
