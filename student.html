@@ -43,7 +43,7 @@
 <body>
 <div class="wrap">
 
-  <!-- Login -->
+  <!-- LOGIN -->
   <div id="authPanel" class="card loginbox">
     <div class="title">Welcome to PQRSTU</div>
     <div class="subtitle">Log in to your account and start marking your attendance</div>
@@ -54,7 +54,7 @@
     <div id="authMsg" class="muted" style="margin-top:12px">Not signed in</div>
   </div>
 
-  <!-- Profile -->
+  <!-- ONE-TIME PROFILE -->
   <div id="signupPanel" class="card" style="display:none">
     <h2>Complete your profile (one-time)</h2>
     <div class="grid">
@@ -67,14 +67,14 @@
     <div id="signupMsg" class="muted" style="margin-top:8px"></div>
   </div>
 
-  <!-- Home -->
+  <!-- HOME -->
   <div id="homePanel" class="card" style="display:none">
     <h2 id="hi">Hi Student</h2>
     <button class="btn" id="goMark" style="margin-top:12px;background:linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25))">Mark Your Attendance</button>
     <div id="liveHint" class="muted" style="margin-top:6px"></div>
   </div>
 
-  <!-- Attendance -->
+  <!-- ATTENDANCE -->
   <div id="attPanel" class="card" style="display:none">
     <h2>Attendance · Verify & Scan</h2>
     <div class="grid">
@@ -84,6 +84,13 @@
     <h3 style="margin:14px 0 8px">Scan live dynamic QR</h3>
     <div id="scanner" style="width:100%;max-width:420px"></div>
     <div id="scanMsg" class="muted" style="margin-top:8px">Camera starting...</div>
+
+    <h3 style="margin:18px 0 8px">Raise Token (if issue)</h3>
+    <div class="grid">
+      <input id="rtReason" placeholder="Reason (mandatory)">
+      <button class="btn" id="raiseBtn">Raise Token</button>
+    </div>
+    <div id="rtMsg" class="muted" style="margin-top:8px"></div>
   </div>
 </div>
 
@@ -96,84 +103,160 @@
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
+/* ================== Firebase Config ================== */
 const firebaseConfig={apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",authDomain:"project-qr-eceae.firebaseapp.com",projectId:"project-qr-eceae",storageBucket:"project-qr-eceae.firebasestorage.app",messagingSenderId:"527248340371",appId:"1:527248340371:web:870ca9bed83372e390e466"};
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore();
 
+/* ================== Helpers ================== */
 const qs=id=>document.getElementById(id), show=(id,on=true)=>qs(id).style.display=on?'block':'none';
 function deviceId(){const k='pqr_device';let v=localStorage.getItem(k);if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}return v;}
-let lastGeo=null;async function captureGeoSilently(){try{const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:1e4}));lastGeo={lat:p.coords.latitude,lng:p.coords.longitude,acc_m:p.coords.accuracy}}catch(_){console.warn("Geo fail")}}
+let lastGeo=null;async function captureGeoSilently(){try{const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:1e4}));lastGeo={lat:p.coords.latitude,lng:p.coords.longitude,acc_m:p.coords.accuracy}}catch(_){/*ignore*/}}
 
-async function providerSignIn(p){p.setCustomParameters({prompt:'select_account'});try{return await auth.signInWithPopup(p)}catch(e){if(e.code.includes('popup')){await auth.signInWithRedirect(p);return null}else throw e}}
+/* ================== Auth (Google/Microsoft) ================== */
+async function providerSignIn(p){p.setCustomParameters({prompt:'select_account'});try{return await auth.signInWithPopup(p)}catch(e){if(e.code&&e.code.includes('popup')){await auth.signInWithRedirect(p);return null}else throw e}}
 qs('googleBtn').onclick=async()=>{await captureGeoSilently();const gp=new firebase.auth.GoogleAuthProvider();const r=await providerSignIn(gp);if(r&&r.user)onLogin()}
 qs('microsoftBtn').onclick=async()=>{await captureGeoSilently();const ms=new firebase.auth.OAuthProvider('microsoft.com');ms.addScope('openid');ms.addScope('profile');ms.addScope('email');const r=await providerSignIn(ms);if(r&&r.user)onLogin()}
 
-async function onLogin(){const u=auth.currentUser;qs('authMsg').textContent='Signed in as '+u.email;const d=await db.collection('users').doc(u.uid).get();if(d.exists){qs('hi').textContent='Hi '+(d.data().name||'Student');show('authPanel',false);show('homePanel',true);checkLive()}else{show('authPanel',false);show('signupPanel',true)}}
-
-qs('signupBtn').onclick=async()=>{
-  const u=auth.currentUser;if(!u)return alert('Sign in first');
-  const name=qs('name').value.trim(),dept=qs('dept').value.trim(),reg=qs('reg').value.trim(),dob=qs('dob').value.trim();
-  if(!name||!dept||!reg||!dob)return qs('signupMsg').textContent='All fields mandatory';
-  if(!/^[0-9]{7}[A-Z]{3}$/.test(reg))return qs('signupMsg').textContent='Invalid Reg No';
-  if(!/^[0-9]{2}[A-Z][a-z]{2}[0-9]{4}$/.test(dob))return qs('signupMsg').textContent='Invalid DOB';
-  await db.collection('users').doc(u.uid).set({uid:u.uid,email:u.email,name,department:dept,reg_no:reg,dob,device_id:deviceId(),created_at:firebase.firestore.FieldValue.serverTimestamp()});
-  qs('hi').textContent='Hi '+name;show('signupPanel',false);show('homePanel',true);checkLive();
-};
-
-let currentSlot=null;
-async function checkLive(){
-  qs('liveHint').textContent='Checking live...';
-  const s=await db.collection('slots').where('status','==','live').limit(1).get();
-  if(s.empty){qs('liveHint').textContent='No attendance is live now';qs('goMark').onclick=()=>alert('⚠ No attendance live now!');}
-  else{
-    currentSlot={id:s.docs[0].id,...s.docs[0].data()};
-    qs('liveHint').textContent='Attendance is live now!';
-    qs('goMark').style.background='linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))';
-    qs('goMark').onclick=()=>{show('homePanel',false);show('attPanel',true);db.collection('users').doc(auth.currentUser.uid).get().then(p=>{if(p.exists)qs('areg').value=p.data().reg_no});startAutoScan();};
+async function onLogin(){
+  const u=auth.currentUser; qs('authMsg').textContent='Signed in as '+u.email;
+  const doc=await db.collection('users').doc(u.uid).get();
+  if(doc.exists){
+    qs('hi').textContent='Hi ' + (doc.data().name||'Student');
+    show('authPanel',false); show('homePanel',true); checkLive();
+  }else{
+    show('authPanel',false); show('signupPanel',true);
   }
 }
 
-/* ---- Auto QR Scan & Auto Mark ---- */
-let html5Qr=null, parsed=null;
-function setScanMsg(m){qs('scanMsg').textContent=m;}
+/* ================== Profile Save ================== */
+qs('signupBtn').onclick=async()=>{
+  const u=auth.currentUser;if(!u) return alert('Sign in first');
+  const name=qs('name').value.trim(),dept=qs('dept').value.trim(),reg=qs('reg').value.trim(),dob=qs('dob').value.trim();
+  if(!name||!dept||!reg||!dob) return qs('signupMsg').textContent='All fields mandatory';
+  if(!/^[0-9]{7}[A-Z]{3}$/.test(reg)) return qs('signupMsg').textContent='Invalid Reg No (e.g., 2400249MBS)';
+  if(!/^[0-9]{2}[A-Z][a-z]{2}[0-9]{4}$/.test(dob)) return qs('signupMsg').textContent='Invalid DOB (e.g., 27Aug2002)';
+  await db.collection('users').doc(u.uid).set({
+    uid:u.uid,email:u.email,name,department:dept,reg_no:reg,dob,
+    device_id:deviceId(),created_at:firebase.firestore.FieldValue.serverTimestamp(),role:'student'
+  });
+  qs('hi').textContent='Hi '+name; show('signupPanel',false); show('homePanel',true); checkLive();
+};
 
-async function startAutoScan(){
-  if(typeof Html5Qrcode==='undefined'){return setScanMsg('❌ QR library not loaded!');}
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-    stream.getTracks().forEach(t=>t.stop());
-    html5Qr=new Html5Qrcode("scanner");
-    const cams=await Html5Qrcode.getCameras();
-    if(!cams.length)return setScanMsg('No camera found');
-    const camId=(cams.find(c=>/back|rear|environment/i.test(c.label))||cams[0]).id;
-    await html5Qr.start({deviceId:{exact:camId}},{fps:10,qrbox:{width:250,height:250}},async text=>{
-      if(!text.startsWith("att://v1."))return;
-      try{
-        const part=text.split('.')[1];
-        parsed=JSON.parse(atob(part));
-        setScanMsg("✅ QR detected for slot "+parsed.slot_id);
-        await markAttendance(parsed);
-      }catch{setScanMsg("Invalid QR");}
-    });
-    setScanMsg('Camera ready, scanning automatically...');
-  }catch(e){setScanMsg('Camera error: '+e.message);}
+/* ================== Live Session Check ================== */
+let currentSlot=null;
+async function checkLive(){
+  qs('liveHint').textContent='Checking live session...';
+  const s=await db.collection('slots').where('status','==','live').limit(1).get();
+  if(s.empty){
+    qs('liveHint').textContent='No attendance is live now';
+    qs('goMark').onclick = ()=> alert('⚠ No attendance is on live now!');
+  }else{
+    currentSlot={id:s.docs[0].id,...s.docs[0].data()};
+    qs('liveHint').textContent='Attendance is live now! You may mark your attendance.';
+    qs('goMark').style.background='linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))';
+    qs('goMark').onclick = ()=>{
+      show('homePanel',false); show('attPanel',true);
+      db.collection('users').doc(auth.currentUser.uid).get().then(p=>{ if(p.exists) qs('areg').value=p.data().reg_no; });
+      startAutoScanner();     // auto start camera and scan
+    };
+  }
 }
+
+/* ================== Scanner (robust auto-detect) ================== */
+let html5Qr=null, parsed=null, lastToken=null;
+function setScanMsg(msg){ console.log('[Scanner]', msg); qs('scanMsg').textContent=msg; }
+
+async function startAutoScanner(){
+  if(typeof Html5Qrcode==='undefined'){ setScanMsg('❌ QR library not loaded!'); return; }
+  try{
+    // Pre-warm permission (stops immediately; improves success rate)
+    const pre = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment" }});
+    pre.getTracks().forEach(t=>t.stop());
+
+    if(html5Qr){ try{await html5Qr.stop()}catch(_){} html5Qr.clear(); }
+    html5Qr = new Html5Qrcode("scanner",{ verbose:false });
+
+    const cams = await Html5Qrcode.getCameras();
+    if(!cams.length){ setScanMsg('No cameras found'); return; }
+    const backCam = cams.find(c=>/back|rear|environment/i.test(c.label)) || cams[0];
+
+    setScanMsg('Starting camera...');
+    await html5Qr.start(
+      { deviceId:{ exact: backCam.id } },
+      { fps:15, qrbox:300, aspectRatio:1.0 },
+      async (decodedText)=>{
+        console.log('Decoded:', decodedText);
+        if(!decodedText.startsWith('att://v1.')) return; // ignore non-attendance QR
+        try{
+          lastToken = decodedText.trim();
+          const base = lastToken.split('.')[1];
+          parsed = JSON.parse(atob(base));           // {slot_id, exp, token_id,...}
+          setScanMsg('✅ QR detected for slot: '+parsed.slot_id);
+          await html5Qr.stop(); html5Qr.clear();
+          await markAttendance(parsed);              // auto-mark immediately
+        }catch(err){
+          console.error('Parse error',err);
+          setScanMsg('⚠ Invalid QR format');
+        }
+      },
+      (errMsg)=>{ /* per-frame decode failures are noisy; keep silent or log */ }
+    );
+    setScanMsg('Camera active — align the QR inside the box');
+  }catch(e){
+    console.error('Scanner init failed', e);
+    setScanMsg('❌ Camera startup failed: ' + (e.message||e));
+  }
+}
+
+/* ================== Mark Attendance ================== */
+function distM(a,b){const toR=x=>x*Math.PI/180,R=6371000;const dLat=toR(b.lat-a.lat),dLng=toR(b.lng-a.lng);const A=Math.sin(dLat/2)**2+Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A));}
 
 async function markAttendance(parsed){
-  const u=auth.currentUser;if(!u)return;
-  const reg=qs('areg').value.trim(),dob=qs('apass').value.trim();
-  if(!reg||!dob)return;
+  const u=auth.currentUser; if(!u){ alert('Please sign in first.'); return; }
+  const reg=qs('areg').value.trim(), dob=qs('apass').value.trim();
+  if(!/^[0-9]{7}[A-Z]{3}$/.test(reg)) return alert('Invalid Reg No (e.g., 2400249MBS)');
+  if(!/^[0-9]{2}[A-Z][a-z]{2}[0-9]{4}$/.test(dob)) return alert('Invalid DOB (e.g., 27Aug2002)');
+  if(!currentSlot || parsed.slot_id !== currentSlot.id) return alert('This QR is not for the active session');
+
   await captureGeoSilently();
+
+  // Optional client geofence (server should still validate)
+  if(currentSlot.room_lat && currentSlot.room_lng){
+    const d=distM({lat:lastGeo?.lat||0,lng:lastGeo?.lng||0},{lat:currentSlot.room_lat,lng:currentSlot.room_lng});
+    if(!lastGeo || d > (currentSlot.radius_m||60)) { alert("You're not in classroom range to mark attendance."); return; }
+  }
+
   await db.collection('checkins').add({
-    student_uid:u.uid,email:u.email,reg_no:reg,slot_id:parsed.slot_id,ts_client:new Date(),
-    ts_server:firebase.firestore.FieldValue.serverTimestamp(),lat:lastGeo?.lat||null,lng:lastGeo?.lng||null,
-    acc_m:lastGeo?.acc_m||null,device_id:deviceId(),token_id:parsed.token_id||null,method:'QR',result:'OK'
+    student_uid:u.uid,email:u.email,reg_no:reg,
+    slot_id:currentSlot.id,class_id:currentSlot.class_id||null,
+    ts_client:new Date(),
+    ts_server:firebase.firestore.FieldValue.serverTimestamp(),
+    lat:lastGeo?.lat||null,lng:lastGeo?.lng||null,acc_m:lastGeo?.acc_m||null,
+    device_id:deviceId(),token_id:parsed.token_id||null,method:'QR',result:'OK'
   });
-  if(html5Qr){await html5Qr.stop();html5Qr.clear();}
-  document.getElementById('successOverlay').style.display='flex';
-  setTimeout(()=>document.getElementById('successOverlay').style.display='none',1800);
-  setScanMsg("Attendance marked successfully!");
+
+  // Success overlay
+  const ov = document.getElementById('successOverlay');
+  ov.style.display='flex';
+  setTimeout(()=>{ ov.style.display='none'; }, 1800);
+  setScanMsg('Attendance marked successfully!');
 }
+
+/* ================== Raise Token ================== */
+qs('raiseBtn').onclick=async()=>{
+  const u=auth.currentUser;if(!u) return alert('Sign in first');
+  const reason=qs('rtReason').value.trim(); if(!reason) return alert('Reason is mandatory');
+  await db.collection('raise_tokens').add({
+    student_uid:u.uid,email:u.email,reason,state:'open',
+    slot_id: currentSlot?.id || parsed?.slot_id || null,
+    created_ts: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  qs('rtMsg').textContent='Token raised. Faculty notified.';
+};
+
+/* Prime geolocation once to reduce later prompts */
+captureGeoSilently();
 </script>
 </body>
 </html>
