@@ -7,18 +7,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{--bg1:#0b1220;--bg2:#141b2e;--text:#eaf0ff;--muted:#b8c0d9;--stroke:rgba(255,255,255,.12);--card:rgba(16,23,41,.62)}
+  :root{--bg1:#0b1220;--bg2:#141b2e;--ink:#eaf0ff;--muted:#b8c0d9;--stroke:rgba(255,255,255,.12);--card:rgba(16,23,41,.62)}
   *{box-sizing:border-box}html,body{height:100%}
   body{
-    margin:0;font-family:Inter,system-ui,Arial,Segoe UI,sans-serif;color:var(--text);
+    margin:0;font-family:Inter,system-ui,Arial,Segoe UI,sans-serif;color:var(--ink);
     background:
       radial-gradient(1200px 600px at 15% -10%, #2a3566 0%, transparent 60%),
       radial-gradient(1000px 700px at 110% 0%, #5b2231 0%, transparent 60%),
       linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
     padding:20px;display:flex;justify-content:center;overflow-x:hidden
   }
-  .wrap{width:min(1180px,100%)}
-  .card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:18px;margin:14px 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 50px rgba(0,0,0,.24);opacity:0;transform:translateY(10px);animation:lift .55s ease forwards}
+  /* Soft parallax glow behind QR */
+  .glow{
+    position:fixed; inset:auto; left:50%; top:180px; width:680px; height:680px; transform:translateX(-50%);
+    background:radial-gradient(closest-side, rgba(59,130,246,.20), transparent 70%);
+    filter: blur(16px); z-index:0; opacity:.8; pointer-events:none; animation:float 12s ease-in-out infinite;
+  }
+  @keyframes float{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-18px)}}
+
+  .wrap{width:min(1180px,100%); position:relative; z-index:1}
+  .card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:18px;margin:14px 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 50px rgba(0,0,0,.24);opacity:0;transform:translateY(10px);animation:lift .55s ease forwards; backdrop-filter: blur(6px)}
   @keyframes lift{to{opacity:1;transform:none}}
   .muted{color:#b8c0d9} h1,h2,h3{margin:0 0 10px}
   .top{display:flex;align-items:center;gap:14px;margin-bottom:8px}
@@ -26,16 +34,20 @@
   .grid2{display:grid;gap:14px;grid-template-columns:1.15fr .85fr} @media (max-width:1020px){.grid2{grid-template-columns:1fr}}
   .grid3{display:grid;gap:10px;grid-template-columns:1fr 1fr 1fr}
   .grid2x{display:grid;gap:10px;grid-template-columns:1fr 1fr}
-  input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #304;background:#0f1630;color:#eaf0ff}
+  input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #304;background:#0f1630;color:#eaf0ff;transition:border-color .15s,box-shadow .15s}
+  input:focus,select:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.18)}
   label{font-size:13px;color:#b8c0d9;display:block;margin-bottom:6px}
-  .btn{padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(180deg, rgba(61,109,242,.35), rgba(61,109,242,.18));color:#fff;font-weight:800;cursor:pointer;transition:.12s transform}
-  .btn:hover{transform:translateY(-1px)}
+  .btn{padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(180deg, rgba(61,109,242,.35), rgba(61,109,242,.18));color:#fff;font-weight:800;cursor:pointer;transition:.12s transform, .12s box-shadow}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(0,0,0,.35)}
   .btn.green{background:linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))}
   .btn.red{background:linear-gradient(180deg, rgba(239,68,68,.55), rgba(239,68,68,.28))}
   .btn.amber{background:linear-gradient(180deg, rgba(245,158,11,.45), rgba(245,158,11,.22))}
-  #qrBox{display:flex;justify-content:center;align-items:center;min-height:260px;border-radius:14px;border:1px dashed rgba(255,255,255,.14);background:#0f1630;position:relative;padding:16px}
+  #qrBox{display:flex;justify-content:center;align-items:center;min-height:260px;border-radius:14px;border:1px dashed rgba(255,255,255,.14);background:#0f1630;position:relative;padding:16px; overflow:hidden}
   .pulse{position:absolute;inset:-2px;border-radius:14px;pointer-events:none;animation:pulse 2.2s ease-in-out infinite;border:2px solid rgba(61,109,242,.25)}
   @keyframes pulse{0%{opacity:.6;transform:scale(.98)}50%{opacity:.15;transform:scale(1.02)}100%{opacity:.6;transform:scale(.98)}}
+  /* rotating sheen over QR */
+  .sheen{position:absolute; inset:0; background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,.05) 30%, transparent 60%); transform:translateX(-100%); animation:sheen 4.5s linear infinite}
+  @keyframes sheen{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
   table{width:100%;border-collapse:collapse;font-size:14px}
   th,td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 6px;text-align:left;vertical-align:top}
   .hidden{display:none}
@@ -52,6 +64,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
+<div class="glow"></div>
 <div id="toast"></div>
 
 <div class="wrap">
@@ -61,12 +74,12 @@
       <img class="logo" src="assets/pqrstu-logo.png" alt="logo" onerror="this.style.display='none'">
       <div>
         <h1>PQRSTU · Faculty</h1>
-        <div class="muted">Start a live session → dynamic QR → review check-ins & resolve tokens</div>
+        <div class="muted">Start a live session → dynamic QR (KV-signed) → review check-ins & resolve tokens</div>
       </div>
     </div>
-    <div class="sso">
-      <button class="sbtn" id="googleBtn"><span class="ico g"></span> Sign in with Google</button>
-      <button class="sbtn" id="microsoftBtn"><span class="ico ms"></span> Sign in with Microsoft</button>
+    <div class="sso" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="googleBtn">Sign in with Google</button>
+      <button class="btn" id="microsoftBtn">Sign in with Microsoft</button>
       <span id="authMsg" class="muted">Not signed in</span>
     </div>
   </div>
@@ -162,8 +175,11 @@
     </div>
 
     <div class="card">
-      <h2>Dynamic QR</h2>
-      <div id="qrBox"><div class="pulse"></div><div id="qr"></div></div>
+      <h2>Dynamic QR (KV-Signed)</h2>
+      <div id="qrBox">
+        <div class="pulse"></div><div class="sheen"></div>
+        <div id="qr"></div>
+      </div>
       <div id="qrMsg" class="muted" style="margin-top:8px">QR idle</div>
       <h2 style="margin-top:14px">Raise Tokens (live)</h2>
       <div id="tokens" class="muted">No open tokens</div>
@@ -189,10 +205,21 @@ const auth=firebase.auth(), db=firebase.firestore();
 const $=id=>document.getElementById(id);
 const show=(id,on=true)=>$(id).classList.toggle('hidden',!on);
 function dayPart(){const h=new Date().getHours();return h<12?'Good Morning!':h<17?'Good Afternoon!':'Good Evening!'}
-function formatDateHuman(d=new Date()){const day=d.getDate();const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0]};return `${day}${ord(day)} ${d.toLocaleString('en-GB',{month:'long'})}, ${d.getFullYear()}`}
+function formatDateHuman(d=new Date()){const day=d.getDate();const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0]};return `${day}${ord(day)} ${d.toLocaleString('en-GB',{month:'long'})}, ${d.getFullYear()}`;}
 function deviceId(){const k='pqr_fac_device';let v=localStorage.getItem(k);if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}return v}
 async function sha256(t){const b=new TextEncoder().encode(t);const d=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(d)).map(x=>x.toString(16).padStart(2,'0')).join('')}
 function showToast(html,ms=3500){const box=$('toast');const t=document.createElement('div');t.className='toast';t.innerHTML=html;box.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .2s';setTimeout(()=>t.remove(),220)},ms)}
+
+/* HMAC helpers (for signing QR) */
+function randHex(bytes=32){const a=new Uint8Array(bytes);crypto.getRandomValues(a);return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function importKeyHex(hex){
+  const bytes=new Uint8Array(hex.match(/.{1,2}/g).map(h=>parseInt(h,16)));
+  return crypto.subtle.importKey('raw',bytes,{name:'HMAC',hash:'SHA-256'},false,['sign']);
+}
+async function hmacHex(key,data){
+  const sig=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
 /* Auth */
 function providerSignin(p){p.setCustomParameters({prompt:'select_account'});return auth.signInWithPopup(p).catch(async e=>{if(['auth/operation-not-supported-in-this-environment','auth/popup-blocked','auth/popup-closed-by-user'].includes(e.code)){await auth.signInWithRedirect(p);return null}throw e})}
@@ -241,7 +268,7 @@ $('loginProceed').onclick=async()=>{
 };
 
 /* Control panel */
-let slotId=null,qrTimer=null,listenerAtt=null,listenerRt=null,attendanceRows=[];
+let slotId=null,qrTimer=null,listenerAtt=null,listenerRt=null,attendanceRows=[], slotSecretHex=null, hmacKey=null;
 $('dateField').value=formatDateHuman(new Date());
 function enableSessionButtons(on){$('pauseBtn').disabled=!on;$('resumeBtn').disabled=!on;$('extendBtn').disabled=!on;$('endBtn').disabled=!on;$('downloadBtn').disabled=!on;$('emailBtn').disabled=!on}
 function nowSec(){return Math.floor(Date.now()/1000)}
@@ -253,20 +280,24 @@ function initControlPanel(){
   $('startBtn').onclick=startSession;$('pauseBtn').onclick=pauseQR;$('resumeBtn').onclick=resumeQR;$('extendBtn').onclick=extendSession;$('endBtn').onclick=endSession;$('downloadBtn').onclick=downloadExcel;$('emailBtn').onclick=sendEmail;
 }
 
-/* Token & QR generation */
-function makeToken(payload){const base64=btoa(JSON.stringify(payload));const sig='demo';return `att://v1.${base64}.${sig}`;}
-function startQR(rotateSec,lifeSec){
+/* Token & QR generation with KV signature */
+function makeTokenPayload(){return {ver:1,slot_id:slotId,issued:nowSec(),exp:nowSec()+Number($('life').value||90),nonce:crypto.randomUUID(),token_id:crypto.randomUUID(),alg:'HS256'};}
+function pack(baseObj){return btoa(JSON.stringify(baseObj))}
+async function drawQR(){
+  if(!slotId || !hmacKey) return;
+  const payload = makeTokenPayload();
+  const base = pack(payload);
+  const sigHex = await hmacHex(hmacKey, base); // sign base64 with per-slot secret
+  const attUrl = `att://v1.${base}.${sigHex}`;
+  const holder=$('qr'); holder.innerHTML='';
+  new QRCode(holder,{text:attUrl,width:280,height:280,correctLevel:QRCode.CorrectLevel.M});
+  $('qrMsg').textContent=`QR refreshed · HS256 signature · expires in ${payload.exp - nowSec()}s`;
+}
+
+function startQR(rotateSec){
   if(qrTimer) clearInterval(qrTimer);
-  const draw=()=>{
-    if(!slotId) return;
-    const payload={ver:1,slot_id:slotId,issued:nowSec(),exp:nowSec()+lifeSec,nonce:crypto.randomUUID(),token_id:crypto.randomUUID()};
-    const token=makeToken(payload);
-    const holder=$('qr'); holder.innerHTML='';
-    new QRCode(holder,{text:token,width:260,height:260,correctLevel:QRCode.CorrectLevel.M});
-    $('qrMsg').textContent=`QR refreshed · expires in ${lifeSec}s · rotates every ${rotateSec}s`;
-  };
-  draw();
-  qrTimer=setInterval(draw,rotateSec*1000);
+  drawQR();
+  qrTimer=setInterval(drawQR,rotateSec*1000);
   $('pauseBtn').disabled=false; $('resumeBtn').disabled=true;
 }
 
@@ -274,12 +305,25 @@ async function startSession(){
   const u=auth.currentUser;if(!u)return alert('Sign in first');
   const course=$('course').value.trim();if(!course)return alert('Select course');
   const hours=Number($('hours').value||1),remarks=$('remarks').value.trim(),lat=Number($('lat').value),lng=Number($('lng').value),radius=Number($('radius').value||60),rotate=Number($('rotate').value||15),life=Number($('life').value||90),classId=$('classid').value.trim()||null;
-  const ref=await db.collection('slots').add({course,hours,remarks,class_id:classId,created_by:u.uid,host_email:u.email,start_ts:firebase.firestore.FieldValue.serverTimestamp(),status:'live',qr_rotate_s:rotate,token_life_s:life,room_lat:lat,room_lng:lng,radius_m:radius});
-  slotId=ref.id;$('sessMsg').textContent='Live session started · slot='+slotId;$('startBtn').disabled=true;enableSessionButtons(true);startQR(rotate,life);
+
+  // Generate per-session secret (kv_key) once
+  slotSecretHex = randHex(32); // 32 bytes = 256-bit
+  hmacKey = await importKeyHex(slotSecretHex);
+
+  const ref=await db.collection('slots').add({
+    course,hours,remarks,class_id:classId,created_by:u.uid,host_email:u.email,
+    start_ts:firebase.firestore.FieldValue.serverTimestamp(),status:'live',
+    qr_rotate_s:rotate,token_life_s:life,room_lat:lat,room_lng:lng,radius_m:radius,
+    kv_key:slotSecretHex // key:value secret for students to verify signature
+  });
+
+  slotId=ref.id;$('sessMsg').textContent='Live session started · slot='+slotId;
+  $('startBtn').disabled=true;enableSessionButtons(true);
+  startQR(rotate);
 
   if(listenerAtt)listenerAtt();
   listenerAtt=db.collection('checkins').where('slot_id','==',slotId).orderBy('ts_server','desc').onSnapshot(s=>{
-    attendanceRows=s.docs.map(d=>{const x=d.data(),t=x.ts_server?.toDate?.()||new Date();return{t,reg:x.reg_no||'—',name:x.name||'—',email:x.email||'—',status:x.result||'OK',acc:Math.round(x.acc_m||0),remarks:x.remarks||''}});renderAttendance()
+    attendanceRows=s.docs.map(d=>{const x=d.data(),t=x.ts_server?.toDate?.()||new Date();return{t,reg:x.reg_no||'—',name:x.name||'—',email:x.email||'—',status:x.result||'OK',acc:Math.round(x.acc_m||0),remarks:x.remarks||''}});renderAttendance();
   });
 
   if(listenerRt)listenerRt();
@@ -295,7 +339,7 @@ async function startSession(){
 }
 
 function pauseQR(){ if(qrTimer){clearInterval(qrTimer);qrTimer=null;$('qrMsg').textContent='QR paused';$('pauseBtn').disabled=true;$('resumeBtn').disabled=false} }
-function resumeQR(){ startQR(Number($('rotate').value||15),Number($('life').value||90)) }
+function resumeQR(){ startQR(Number($('rotate').value||15)) }
 async function extendSession(){ if(!slotId)return; await db.collection('slots').doc(slotId).update({extend_ts:firebase.firestore.FieldValue.serverTimestamp()}); $('sessMsg').textContent='Session extended by 3 minutes (marker logged)' }
 async function endSession(){
   if(qrTimer){clearInterval(qrTimer);qrTimer=null}
@@ -303,7 +347,7 @@ async function endSession(){
   $('qr').innerHTML='';$('qrMsg').textContent='QR idle';$('sessMsg').textContent='Session ended.'
   enableSessionButtons(false);$('startBtn').disabled=false;
   if(listenerAtt)listenerAtt(); if(listenerRt)listenerRt();
-  slotId=null;
+  slotId=null; slotSecretHex=null; hmacKey=null;
 }
 
 function renderAttendance(){
