@@ -7,25 +7,43 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{--bg1:#0b1220;--bg2:#141b2e;--text:#eaf0ff;--muted:#b8c0d9;--stroke:rgba(255,255,255,.12);--card:rgba(16,23,41,.62);--green:#16a34a;--red:#ef4444}
-  *{box-sizing:border-box} html,body{height:100%}
+  :root{
+    --bg1:#0a0f1f;--bg2:#0e1530;--ink:#eaf0ff;--muted:#b9c3df;--stroke:rgba(255,255,255,.12);
+    --card:rgba(16,23,41,.62);--green:#16a34a;--red:#ef4444;--blue:#3b82f6;--amber:#f59e0b
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
   body{
-    margin:0; font-family:Inter,system-ui,Arial,Segoe UI,sans-serif; color:var(--text);
+    margin:0; font-family:Inter,system-ui,Arial,Segoe UI,sans-serif; color:var(--ink);
     background:
       radial-gradient(1200px 600px at 20% -10%, #2a3566 0%, transparent 60%),
       radial-gradient(1000px 700px at 100% 0%, #5b2231 0%, transparent 60%),
       linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
-    padding:20px; display:flex; justify-content:center;
+    padding:20px; display:flex; justify-content:center; overflow-x:hidden
   }
-  .wrap{ width:min(980px,100%) }
+  /* Subtle particle field */
+  .fx{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,.12) 40%, transparent 41%),
+                     radial-gradient(2px 2px at 70% 40%, rgba(255,255,255,.10) 40%, transparent 41%),
+                     radial-gradient(2px 2px at 40% 80%, rgba(255,255,255,.10) 40%, transparent 41%);
+    animation: drift 38s linear infinite;
+    opacity:.5;
+    filter: blur(.2px);
+  }
+  @keyframes drift{0%{transform:translateY(0)}100%{transform:translateY(-120px)}}
+
+  .wrap{ width:min(980px,100%); position:relative; z-index:1 }
   .card{
     background:var(--card); border:1px solid var(--stroke); border-radius:16px;
     padding:18px; margin:18px 0;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 50px rgba(0,0,0,.24);
     opacity:0; transform:translateY(8px); animation:up .55s .1s forwards;
+    backdrop-filter: blur(6px);
   }
   @keyframes up{to{opacity:1; transform:none}}
   .muted{ color:var(--muted) }
+  h2{margin:0 0 10px}
   .title{ font-weight:800; font-size:26px; margin:4px 0 }
   .subtitle{ color:var(--muted); margin:0 0 12px }
   .loginbox{ max-width:520px; margin-inline:auto; text-align:center }
@@ -34,10 +52,12 @@
     display:flex; align-items:center; gap:12px; justify-content:center;
     width:100%; padding:12px 14px; border-radius:12px;
     border:1px solid rgba(255,255,255,.18);
-    background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-    color:#fff; font-weight:800; cursor:pointer; transition:.15s transform;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+    color:#fff; font-weight:800; cursor:pointer; transition:transform .15s, box-shadow .15s;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
   }
-  .sbtn:hover{ transform:translateY(-1px) }
+  .sbtn:hover{ transform:translateY(-1px); box-shadow:0 12px 28px rgba(0,0,0,.35) }
   .ico{ width:18px; height:18px; display:inline-block; }
   .ico.g{ background:url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') center/contain no-repeat }
   .ico.ms{
@@ -52,14 +72,30 @@
   }
   .grid{ display:grid; gap:16px; grid-template-columns:1fr 1fr } @media (max-width:860px){ .grid{ grid-template-columns:1fr } }
   input,button,select{ font-family:inherit; font-size:15px }
-  input,select{ width:100%; padding:12px; border-radius:10px; border:1px solid #304; background:#0f1630; color:#eaf0ff }
+  input,select{
+    width:100%; padding:12px; border-radius:10px; border:1px solid #304; background:#0f1630; color:#eaf0ff;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus,select:focus{ outline:none; border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.18) }
   label{ font-size:13px; color:var(--muted); display:block; margin-bottom:6px }
-  .btn{ width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18); color:#fff; font-weight:800; cursor:pointer }
+  .btn{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
+    color:#fff; font-weight:800; cursor:pointer; transition: transform .15s, filter .15s, box-shadow .15s;
+    box-shadow:0 10px 28px rgba(0,0,0,.32);
+  }
+  .btn:hover{ transform: translateY(-1px); filter:saturate(1.1); box-shadow:0 14px 34px rgba(0,0,0,.4) }
   .btn.green{ background:linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28)) }
   .btn.dark{ background:linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25)) }
   .btn.red{ background:linear-gradient(180deg, rgba(239,68,68,.55), rgba(239,68,68,.28)) }
-  .row{ display:grid; grid-template-columns:1fr auto; gap:10px }
-  #scanner{ border-radius:12px; overflow:hidden; background:#0f1630; border:1px dashed rgba(255,255,255,.2) }
+  .row{ display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center }
+  #scanner{ border-radius:12px; overflow:hidden; background:#0f1630; border:1px dashed rgba(255,255,255,.2); position:relative }
+  /* Scanner glow */
+  #scanner::after{
+    content:""; position:absolute; inset:-2px; border-radius:12px;
+    border:2px solid rgba(59,130,246,.22); animation:scanpulse 2.6s ease-in-out infinite; pointer-events:none
+  }
+  @keyframes scanpulse{0%{opacity:.7;transform:scale(.98)}50%{opacity:.15;transform:scale(1.02)}100%{opacity:.7;transform:scale(.98)}}
+
   .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999; }
   .okbg{ background:rgba(5,20,5,.85) } .errbg{ background:rgba(30,5,5,.85) }
   .panel{ background:#0a7a33; border:2px solid #12d16a; color:#fff; padding:26px 30px; border-radius:18px; font-size:20px; font-weight:800; box-shadow:0 24px 80px rgba(0,0,0,.5); text-align:center; animation:pop .45s ease; }
@@ -73,6 +109,7 @@
 </style>
 </head>
 <body>
+<div class="fx"></div>
 <div id="toast"></div>
 
 <div class="wrap">
@@ -111,7 +148,7 @@
     <div id="liveHint" class="muted" style="margin-top:6px">Checking live session…</div>
   </div>
 
-  <!-- ATTENDANCE (no auto camera) -->
+  <!-- ATTENDANCE -->
   <div id="attPanel" class="card" style="display:none">
     <h2>Attendance · Verify</h2>
     <div class="grid">
@@ -170,7 +207,7 @@ async function providerSignIn(p){p.setCustomParameters({prompt:'select_account'}
 qs('googleBtn').onclick=async()=>{await captureGeoSilently();const gp=new firebase.auth.GoogleAuthProvider();const r=await providerSignIn(gp);if(r&&r.user)onLogin()}
 qs('microsoftBtn').onclick=async()=>{await captureGeoSilently();const ms=new firebase.auth.OAuthProvider('microsoft.com');ms.addScope('openid');ms.addScope('profile');ms.addScope('email');const r=await providerSignIn(ms);if(r&&r.user)onLogin()}
 
-let currentSlot=null, html5Qr=null, parsed=null, lastToken=null, myProfile=null, tokenListenerStop=null;
+let currentSlot=null, html5Qr=null, parsed=null, tokenBase=null, tokenSig=null, myProfile=null;
 
 async function onLogin(){
   const u=auth.currentUser; qs('authMsg').textContent='Signed in as '+u.email;
@@ -178,13 +215,12 @@ async function onLogin(){
   if(doc.exists){
     myProfile=doc.data(); qs('hi').textContent='Hi '+(myProfile.name||'Student');
     show('authPanel',false); show('homePanel',true);
-    // Button always works, even if no live slot (will warn later)
     document.getElementById('goMark').onclick=()=>{
       show('homePanel',false); show('attPanel',true);
       qs('areg').value=myProfile?.reg_no||''; qs('apass').value='';
       qs('scanMsg').textContent='Scanner idle';
     };
-    checkLive(); // update hint + slot info
+    checkLive();
   }else{
     show('authPanel',false); show('signupPanel',true);
   }
@@ -204,7 +240,7 @@ qs('signupBtn').onclick=async()=>{
   qs('hi').textContent='Hi '+name; show('signupPanel',false); show('homePanel',true); checkLive();
 };
 
-/* Live slot check (no orderBy → no composite index needed) */
+/* Live slot check */
 async function checkLive(){
   qs('liveHint').textContent='Checking live session…';
   try{
@@ -214,7 +250,17 @@ async function checkLive(){
   }catch(e){ qs('liveHint').textContent='Could not check live session.'; }
 }
 
-/* Scanner (manual) */
+/* HMAC Utils (student side for verify) */
+async function importKeyHex(hex){
+  const bytes=new Uint8Array(hex.match(/.{1,2}/g).map(h=>parseInt(h,16)));
+  return crypto.subtle.importKey('raw',bytes,{name:'HMAC',hash:'SHA-256'},false,['sign']);
+}
+async function hmacHex(key,data){
+  const sig=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* Scanner */
 function setScanMsg(m){qs('scanMsg').textContent=m}
 qs('startScan').onclick=async()=>{
   if(!currentSlot){ alert('No live session right now. You can still raise a token.'); return; }
@@ -231,14 +277,42 @@ qs('startScan').onclick=async()=>{
       async (decodedText)=>{
         if(!decodedText.startsWith('att://v1.')) return;
         try{
-          lastToken=decodedText.trim(); const base=lastToken.split('.')[1]; parsed=JSON.parse(atob(base));
-          setScanMsg('QR read. Validating…'); await markAttendance();
+          const parts=decodedText.trim().split('.');
+          tokenBase=parts[1]; tokenSig=parts[2]||'';
+          parsed=JSON.parse(atob(tokenBase));
+          setScanMsg('QR read. Validating KV signature…');
+          const ok = await verifyKVSignature(parsed, tokenBase);
+          if(!ok){ setScanMsg('❌ Invalid or expired QR'); showFail('QR signature check failed.'); return; }
+          await markAttendance();
         }catch(e){ setScanMsg('Invalid QR format'); }
       }, (_)=>{}
     ); setScanMsg('Camera active — hold QR inside the box');
   }catch(e){ setScanMsg('Camera error: '+(e.message||e)); }
 };
 qs('stopScan').onclick=async()=>{ if(html5Qr){ await html5Qr.stop(); html5Qr.clear(); html5Qr=null; setScanMsg('Scanner stopped'); } };
+
+/* Verify token KV (HMAC) and time */
+async function verifyKVSignature(payload, base){
+  try{
+    // Basic structure & time checks
+    if(!payload || !payload.slot_id || !payload.exp || !payload.issued) return false;
+    const nowSec = Math.floor(Date.now()/1000);
+    if(payload.exp < nowSec) return false;
+    if(nowSec - payload.issued > 600) return false; // sanity window
+
+    // Pull slot to read per-slot secret (kv_key)
+    const slotSnap = await db.collection('slots').doc(payload.slot_id).get();
+    if(!slotSnap.exists) return false;
+    const slot = slotSnap.data();
+    if(slot.status!=='live') return false;
+    const secretHex = slot.kv_key; // 64-hex chars
+    if(!/^[0-9a-f]{64}$/i.test(secretHex||'')) return false;
+
+    const key = await importKeyHex(secretHex);
+    const expected = await hmacHex(key, base); // sign the base64 body
+    return (expected === tokenSig.toLowerCase());
+  }catch(e){ return false; }
+}
 
 /* Mark Attendance */
 async function markAttendance(){
@@ -250,12 +324,14 @@ async function markAttendance(){
   if(!currentSlot || parsed.slot_id !== currentSlot.id){ showFail('This QR is not for the active session'); return; }
   if(myProfile && (myProfile.reg_no!==reg || myProfile.dob!==pass)){ showFail('Profile Reg. No / DOB do not match.'); return; }
 
+  // Duplicate checks
   const dup = await db.collection('checkins').where('slot_id','==',currentSlot.id).where('student_uid','==',u.uid).limit(1).get();
   if(!dup.empty){ showSuccess(); if(html5Qr){try{await html5Qr.stop()}catch(_){ } html5Qr.clear(); html5Qr=null; setScanMsg('Scanner stopped'); } return; }
 
   const dupDev = await db.collection('checkins').where('slot_id','==',currentSlot.id).where('device_id','==',deviceId()).limit(1).get();
   if(!dupDev.empty){ showFail('Attendance already marked from this device.'); return; }
 
+  // Geo fence
   await captureGeoSilently();
   if(currentSlot.room_lat && currentSlot.room_lng){
     const d=distM({lat:lastGeo?.lat||0,lng:lastGeo?.lng||0},{lat:currentSlot.room_lat,lng:currentSlot.room_lng});
@@ -266,7 +342,7 @@ async function markAttendance(){
     student_uid:u.uid,email:u.email,reg_no:reg,slot_id:currentSlot.id,class_id:currentSlot.class_id||null,
     ts_client:new Date(), ts_server:firebase.firestore.FieldValue.serverTimestamp(),
     lat:lastGeo?.lat||null,lng:lastGeo?.lng||null,acc_m:lastGeo?.acc_m||null,
-    device_id:deviceId(),token_id:parsed.token_id||null,method:'QR',result:'OK'
+    device_id:deviceId(),token_id:parsed.token_id||null,method:'QR+KV',result:'OK'
   });
 
   showSuccess();
@@ -287,8 +363,6 @@ qs('raiseBtn').onclick=async()=>{
     created_ts:firebase.firestore.FieldValue.serverTimestamp(),last_update_ts:firebase.firestore.FieldValue.serverTimestamp()
   });
   qs('rtMsg').textContent='Token raised. Faculty notified.';
-
-  // listen for this token only
   ref && db.collection('raise_tokens').doc(ref.id).onSnapshot(d=>{
     const x=d.data(); if(!x) return;
     if(x.state==='accepted'){ showToast('<strong>✅ Approved</strong><div>Your attendance has been approved by faculty.</div>'); }
