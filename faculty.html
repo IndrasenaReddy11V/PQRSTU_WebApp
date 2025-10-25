@@ -6,97 +6,67 @@
 <title>Faculty · PQRSTU</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
 <style>
-  :root{
-    --bg1:#0b1220; --bg2:#141b2e; --text:#eaf0ff; --muted:#b8c0d9; --stroke:rgba(255,255,255,.12);
-    --card:rgba(16,23,41,.62); --ok:#22c55e; --bad:#ef4444; --amber:#f59e0b; --accent:#3d6df2;
-  }
-  *{box-sizing:border-box} html,body{height:100%}
-  body{
-    margin:0; font-family:Inter,system-ui,Arial,Segoe UI,sans-serif; color:var(--text);
-    background:
-      radial-gradient(1200px 600px at 15% -10%, #2a3566 0%, transparent 60%),
-      radial-gradient(1000px 700px at 110% 0%, #5b2231 0%, transparent 60%),
-      linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
-    padding:20px; display:flex; justify-content:center; overflow-x:hidden;
-  }
-  .wrap{ width:min(1180px,100%) }
-  .card{
-    background:var(--card); border:1px solid var(--stroke); border-radius:16px; padding:18px; margin:14px 0;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 50px rgba(0,0,0,.24);
-    opacity:0; transform:translateY(10px); animation:lift .55s ease forwards;
-  }
-  @keyframes lift{to{opacity:1; transform:none}}
-  .muted{ color:var(--muted) }
-  h1,h2,h3{ margin:0 0 10px }
-  .top{ display:flex; align-items:center; gap:14px; margin-bottom:8px }
-  .logo{ width:52px; height:52px; border-radius:12px; object-fit:cover; background:#fff; border:1px solid var(--stroke) }
-
-  .grid2{ display:grid; gap:14px; grid-template-columns:1.15fr .85fr }
-  @media (max-width:1020px){ .grid2{ grid-template-columns:1fr } }
-  .grid3{ display:grid; gap:10px; grid-template-columns:1fr 1fr 1fr }
-  .grid2x{ display:grid; gap:10px; grid-template-columns:1fr 1fr }
-
-  input,select{
-    width:100%; padding:12px; border-radius:12px; border:1px solid #304; background:#0f1630; color:#eaf0ff; font-size:15px
-  }
-  label{ font-size:13px; color:var(--muted); display:block; margin-bottom:6px }
-  .btn{
-    padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
-    background:linear-gradient(180deg, rgba(61,109,242,.35), rgba(61,109,242,.18));
-    color:#fff; font-weight:800; cursor:pointer; transition:.12s transform;
-  }
-  .btn:hover{ transform:translateY(-1px) }
-  .btn.green{ background:linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28)) }
-  .btn.red{ background:linear-gradient(180deg, rgba(239,68,68,.55), rgba(239,68,68,.28)) }
-  .btn.amber{ background:linear-gradient(180deg, rgba(245,158,11,.45), rgba(245,158,11,.22)) }
-
-  .sso{ display:flex; gap:10px; flex-wrap:wrap }
-  .sbtn{
-    display:flex; align-items:center; gap:10px; justify-content:center;
-    padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
-    background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-    color:#fff; font-weight:800; cursor:pointer
-  }
-  .ico{ width:18px; height:18px; display:inline-block; }
-  .ico.g{ background:url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') center/contain no-repeat }
-  .ico.ms{
-    background-image:url("data:image/svg+xml;utf8,\
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 480'>\
-      <rect x='24' y='24' width='204' height='204' fill='%23f25022'/>\
-      <rect x='252' y='24' width='204' height='204' fill='%237eb900'/>\
-      <rect x='24' y='252' width='204' height='204' fill='%2300a4ef'/>\
-      <rect x='252' y='252' width='204' height='204' fill='%23ffb900'/>\
-    </svg>");
-    background-position:center; background-repeat:no-repeat; background-size:contain;
-  }
-
-  #qrBox{
-    display:flex; justify-content:center; align-items:center; min-height:260px; border-radius:14px;
-    border:1px dashed rgba(255,255,255,.14); background:#0f1630; position:relative; padding:16px;
-  }
-  .pulse{ position:absolute; inset:-2px; border-radius:14px; pointer-events:none; animation:pulse 2.2s ease-in-out infinite; border:2px solid rgba(61,109,242,.25) }
-  @keyframes pulse{ 0%{opacity:.6; transform:scale(.98)} 50%{opacity:.15; transform:scale(1.02)} 100%{opacity:.6; transform:scale(.98)} }
-
-  table{ width:100%; border-collapse:collapse; font-size:14px }
-  th,td{ border-bottom:1px solid rgba(255,255,255,.08); padding:8px 6px; text-align:left; vertical-align:top }
-  .pill{ display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke) }
-  .ok{ color:#9dffaf; border-color:#2c7a43 } .badc{ color:#ff9da6; border-color:#7a2c2c } .info{ color:#bfe1ff; border-color:#3d6df2 }
-
+  :root{--bg1:#0b1220;--bg2:#141b2e;--text:#eaf0ff;--muted:#b8c0d9;--stroke:rgba(255,255,255,.12);
+        --card:rgba(16,23,41,.62)}
+  *{box-sizing:border-box}html,body{height:100%}
+  body{margin:0;font-family:Inter,system-ui,Arial,Segoe UI,sans-serif;color:var(--text);
+       background:radial-gradient(1200px 600px at 15% -10%, #2a3566 0%, transparent 60%),
+                  radial-gradient(1000px 700px at 110% 0%, #5b2231 0%, transparent 60%),
+                  linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
+       padding:20px;display:flex;justify-content:center;overflow-x:hidden}
+  .wrap{width:min(1180px,100%)}
+  .card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:18px;margin:14px 0;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 50px rgba(0,0,0,.24);
+        opacity:0;transform:translateY(10px);animation:lift .55s ease forwards}
+  @keyframes lift{to{opacity:1;transform:none}}
+  .muted{color:#b8c0d9} h1,h2,h3{margin:0 0 10px}
+  .top{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+  .logo{width:52px;height:52px;border-radius:12px;object-fit:cover;background:#fff;border:1px solid var(--stroke)}
+  .grid2{display:grid;gap:14px;grid-template-columns:1.15fr .85fr}
+  @media (max-width:1020px){.grid2{grid-template-columns:1fr}}
+  .grid3{display:grid;gap:10px;grid-template-columns:1fr 1fr 1fr}
+  .grid2x{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+  input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #304;background:#0f1630;color:#eaf0ff}
+  label{font-size:13px;color:#b8c0d9;display:block;margin-bottom:6px}
+  .btn{padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);
+       background:linear-gradient(180deg, rgba(61,109,242,.35), rgba(61,109,242,.18));
+       color:#fff;font-weight:800;cursor:pointer;transition:.12s transform}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.green{background:linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))}
+  .btn.red{background:linear-gradient(180deg, rgba(239,68,68,.55), rgba(239,68,68,.28))}
+  .btn.amber{background:linear-gradient(180deg, rgba(245,158,11,.45), rgba(245,158,11,.22))}
+  .sso{display:flex;gap:10px;flex-wrap:wrap}
+  .sbtn{display:flex;align-items:center;gap:10px;justify-content:center;padding:10px 12px;border-radius:12px;
+        border:1px solid rgba(255,255,255,.18);background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));color:#fff;font-weight:800;cursor:pointer}
+  .ico{width:18px;height:18px;display:inline-block}
+  .ico.g{background:url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') center/contain no-repeat}
+  .ico.ms{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 480'><rect x='24' y='24' width='204' height='204' fill='%23f25022'/><rect x='252' y='24' width='204' height='204' fill='%237eb900'/><rect x='24' y='252' width='204' height='204' fill='%2300a4ef'/><rect x='252' y='252' width='204' height='204' fill='%23ffb900'/></svg>");background-position:center;background-repeat:no-repeat;background-size:contain}
+  #qrBox{display:flex;justify-content:center;align-items:center;min-height:260px;border-radius:14px;border:1px dashed rgba(255,255,255,.14);background:#0f1630;position:relative;padding:16px}
+  .pulse{position:absolute;inset:-2px;border-radius:14px;pointer-events:none;animation:pulse 2.2s ease-in-out infinite;border:2px solid rgba(61,109,242,.25)}
+  @keyframes pulse{0%{opacity:.6;transform:scale(.98)}50%{opacity:.15;transform:scale(1.02)}100%{opacity:.6;transform:scale(.98)}}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 6px;text-align:left;vertical-align:top}
   .hidden{display:none}
+  /* toasts */
+  #toast{position:fixed;right:18px;bottom:18px;z-index:99999;display:flex;flex-direction:column;gap:10px}
+  .toast{background:rgba(16,23,41,.92);border:1px solid rgba(255,255,255,.12);color:#eaf0ff;padding:12px 14px;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.35);max-width:360px;animation:toastIn .25s ease}
+  .toast strong{display:block;margin-bottom:6px}
+  @keyframes toastIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 </style>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<!-- QR generator -->
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-<div class="wrap">
+<div id="toast"></div>
 
-  <!-- 0) AUTH -->
+<div class="wrap">
+  <!-- AUTH -->
   <div class="card">
     <div class="top">
       <img class="logo" src="assets/pqrstu-logo.png" alt="logo" onerror="this.style.display='none'">
@@ -105,7 +75,6 @@
         <div class="muted">Start a live session → dynamic QR → review check-ins & resolve tokens</div>
       </div>
     </div>
-
     <div class="sso">
       <button class="sbtn" id="googleBtn"><span class="ico g"></span> Sign in with Google</button>
       <button class="sbtn" id="microsoftBtn"><span class="ico ms"></span> Sign in with Microsoft</button>
@@ -113,81 +82,52 @@
     </div>
   </div>
 
-  <!-- 1) ONE-TIME FACULTY SIGNUP -->
+  <!-- SIGNUP -->
   <div id="signupPanel" class="card hidden">
     <h2>Complete your Faculty Profile (one-time)</h2>
     <div class="grid3" style="margin-top:8px">
-      <div>
-        <label>Salutation</label>
-        <select id="salutation">
-          <option value="">Select</option>
-          <option>Dr.</option><option>Prof.</option><option>Mr.</option><option>Mrs.</option><option>Ms.</option>
-        </select>
+      <div><label>Salutation</label>
+        <select id="salutation"><option value="">Select</option><option>Dr.</option><option>Prof.</option><option>Mr.</option><option>Mrs.</option><option>Ms.</option></select>
       </div>
-      <div>
-        <label>Full Name (alphabets & spaces)</label>
-        <input id="fname" placeholder="e.g., Shruti Sharma Rana">
-      </div>
-      <div>
-        <label>Create Password (min 8 chars, letters+numbers)</label>
-        <input id="fpass" type="password" placeholder="e.g., Riya@007">
-      </div>
+      <div><label>Full Name (alphabets & spaces)</label><input id="fname" placeholder="e.g., Shruti Sharma Rana"></div>
+      <div><label>Create Password (min 8 chars, letters+numbers)</label><input id="fpass" type="password" placeholder="e.g., Riya@007"></div>
     </div>
     <div class="grid2x" style="margin-top:10px">
-      <div>
-        <label>Report Email (Gmail/Outlook)</label>
-        <input id="femail" placeholder="prof@terisas.ac.in">
-      </div>
-      <div>
-        <label>Confirm Password</label>
-        <input id="fpass2" type="password" placeholder="Re-enter password">
-      </div>
+      <div><label>Report Email (Gmail/Outlook)</label><input id="femail" placeholder="prof@terisas.ac.in"></div>
+      <div><label>Confirm Password</label><input id="fpass2" type="password" placeholder="Re-enter password"></div>
     </div>
     <button class="btn green" id="signupBtn" style="margin-top:12px">Submit</button>
     <div id="signupMsg" class="muted" style="margin-top:8px"></div>
   </div>
 
-  <!-- 2) GREETING + LOGIN TO TAKE ATTENDANCE -->
+  <!-- GREETING -->
   <div id="greetPanel" class="card hidden">
     <h2 id="greetTitle">Hello, Faculty</h2>
     <div id="greetSub" class="muted"></div>
     <button class="btn green" id="goLogin" style="margin-top:10px">Login to take Attendance</button>
-
     <div id="loginBox" class="hidden" style="margin-top:12px">
       <div class="grid2x">
-        <div>
-          <label>Select Faculty</label>
+        <div><label>Select Faculty</label>
           <select id="loginFaculty">
             <option value="">Choose</option>
-            <option>Dr. Gopal Sarangi</option>
-            <option>Dr. Shruti Sharma Rana</option>
-            <option>Dr Parul Behl</option>
-            <option>Dr Anand Jaiswal</option>
-            <option>Dr Moumita Acharyya</option>
-            <option>Dr. Ashutosh Srivastava</option>
-            <option>Prof. Anil Gupta</option>
-            <option>Mr. Indrasena Reddy</option>
+            <option>Dr. Gopal Sarangi</option><option>Dr. Shruti Sharma Rana</option><option>Dr Parul Behl</option>
+            <option>Dr Anand Jaiswal</option><option>Dr Moumita Acharyya</option><option>Dr. Ashutosh Srivastava</option>
+            <option>Prof. Anil Gupta</option><option>Mr. Admin</option>
           </select>
         </div>
-        <div>
-          <label>Password</label>
-          <input id="loginPass" type="password" placeholder="Your faculty password">
-        </div>
+        <div><label>Password</label><input id="loginPass" type="password" placeholder="Your faculty password"></div>
       </div>
       <button class="btn" id="loginProceed" style="margin-top:10px">Proceed to Control Panel</button>
       <div id="loginMsg" class="muted" style="margin-top:6px"></div>
     </div>
   </div>
 
-  <!-- 3) CONTROL PANEL -->
+  <!-- CONTROL PANEL -->
   <div id="ctrlPanel" class="grid2 hidden">
-
     <div class="card">
       <h2>Session Details</h2>
-
       <div class="grid2x" style="margin-top:8px">
-        <div>
-          <label>Select the course</label>
+        <div><label>Select the course</label>
           <select id="course">
             <option value="">Select Course</option>
             <option>BSI 125 - Accounting and Finance for Sustainability</option>
@@ -199,367 +139,164 @@
             <option>PPM 125 - Financial Intermediaries, Institutions and Regulations</option>
           </select>
         </div>
-        <div>
-          <label>Date</label>
-          <input id="dateField" disabled>
-        </div>
+        <div><label>Date</label><input id="dateField" disabled></div>
       </div>
-
       <div class="grid3" style="margin-top:8px">
-        <div>
-          <label>No. of lectures (hrs)</label>
-          <input id="hours" type="number" min="1" value="2">
-        </div>
-        <div>
-          <label>Remarks (optional)</label>
-          <input id="remarks" placeholder="Any note">
-        </div>
-        <div>
-          <label>Class ID (optional)</label>
-          <input id="classid" placeholder="e.g., DT-3A">
-        </div>
+        <div><label>No. of lectures (hrs)</label><input id="hours" type="number" min="1" value="2"></div>
+        <div><label>Remarks (optional)</label><input id="remarks" placeholder="Any note"></div>
+        <div><label>Class ID (optional)</label><input id="classid" placeholder="e.g., DT-3A"></div>
       </div>
-
       <h3 style="margin-top:12px">Classroom location</h3>
       <div class="grid3">
-        <div><label>Latitude</label><input id="lat" placeholder="Auto" ></div>
-        <div><label>Longitude</label><input id="lng" placeholder="Auto" ></div>
+        <div><label>Latitude</label><input id="lat" placeholder="Auto"></div>
+        <div><label>Longitude</label><input id="lng" placeholder="Auto"></div>
         <div><label>Radius (m)</label><input id="radius" value="60"></div>
       </div>
-
       <h3 style="margin-top:12px">QR Settings</h3>
       <div class="grid3">
         <div><label>Rotate every (sec)</label><input id="rotate" value="15"></div>
         <div><label>Token life (sec)</label><input id="life" value="90"></div>
         <div><label>&nbsp;</label><span class="muted">QR updates automatically</span></div>
       </div>
-
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
         <button class="btn green" id="startBtn">Start Session</button>
         <button class="btn amber" id="pauseBtn" disabled>Pause</button>
         <button class="btn amber" id="resumeBtn" disabled>Resume</button>
         <button class="btn" id="extendBtn" disabled>Extend +3m</button>
         <button class="btn red" id="endBtn" disabled>End Session</button>
       </div>
-
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px">
-        <button class="btn" id="downloadBtn" disabled>Download Report (CSV)</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn" id="downloadBtn" disabled>Download Report (Excel)</button>
         <button class="btn" id="emailBtn" disabled>Send via Email</button>
       </div>
-
       <div id="sessMsg" class="muted" style="margin-top:8px">—</div>
     </div>
 
     <div class="card">
       <h2>Dynamic QR</h2>
-      <div id="qrBox">
-        <div class="pulse"></div>
-        <div id="qr"></div>
-      </div>
+      <div id="qrBox"><div class="pulse"></div><div id="qr"></div></div>
       <div id="qrMsg" class="muted" style="margin-top:8px">QR idle</div>
-
       <h2 style="margin-top:14px">Raise Tokens (live)</h2>
       <div id="tokens" class="muted">No open tokens</div>
     </div>
   </div>
 
-  <!-- 4) ATTENDANCE TABLE -->
   <div id="attCard" class="card hidden">
     <h2>Live Attendance</h2>
     <table>
-      <thead>
-        <tr><th>Time</th><th>Reg. No.</th><th>Name</th><th>Email</th><th>Status</th><th>Accuracy (m)</th><th>Remarks</th></tr>
-      </thead>
+      <thead><tr><th>Time</th><th>Reg. No.</th><th>Name</th><th>Email</th><th>Status</th><th>Accuracy (m)</th><th>Remarks</th></tr></thead>
       <tbody id="att"></tbody>
     </table>
   </div>
 </div>
 
 <script>
-/*** 0) Firebase ***/
-const firebaseConfig = {
-  apiKey: "AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",
-  authDomain: "project-qr-eceae.firebaseapp.com",
-  projectId: "project-qr-eceae",
-  storageBucket: "project-qr-eceae.firebasestorage.app",
-  messagingSenderId: "527248340371",
-  appId: "1:527248340371:web:870ca9bed83372e390e466"
-};
+/* Firebase */
+const firebaseConfig={apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",authDomain:"project-qr-eceae.firebaseapp.com",projectId:"project-qr-eceae",storageBucket:"project-qr-eceae.firebasestorage.app",messagingSenderId:"527248340371",appId:"1:527248340371:web:870ca9bed83372e390e466"};
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();
+const auth=firebase.auth(), db=firebase.firestore();
 
-/*** helpers ***/
-const $ = id => document.getElementById(id);
-const show = (id, on=true)=> $(id).classList.toggle('hidden', !on);
-function dayPart(){
-  const h = new Date().getHours();
-  if(h<12) return 'Good Morning!'; if(h<17) return 'Good Afternoon!'; return 'Good Evening!';
-}
-function formatDateHuman(d=new Date()){
-  const day=d.getDate();
-  const ord=(n)=>{const s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0];};
-  return `${day}${ord(day)} ${d.toLocaleString('en-GB',{month:'long'})}, ${d.getFullYear()}`;
-}
-function deviceId(){ const k='pqr_fac_device'; let v=localStorage.getItem(k); if(!v){ v=crypto.randomUUID(); localStorage.setItem(k,v);} return v; }
+/* Helpers */
+const $=id=>document.getElementById(id);
+const show=(id,on=true)=>$(id).classList.toggle('hidden',!on);
+function dayPart(){const h=new Date().getHours();return h<12?'Good Morning!':h<17?'Good Afternoon!':'Good Evening!'}
+function formatDateHuman(d=new Date()){const day=d.getDate();const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0]};return `${day}${ord(day)} ${d.toLocaleString('en-GB',{month:'long'})}, ${d.getFullYear()}`}
+function deviceId(){const k='pqr_fac_device';let v=localStorage.getItem(k);if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}return v}
+async function sha256(t){const b=new TextEncoder().encode(t);const d=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(d)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+function showToast(html,ms=3500){const box=$('toast');const t=document.createElement('div');t.className='toast';t.innerHTML=html;box.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .2s';setTimeout(()=>t.remove(),220)},ms)}
 
-/*** password hashing (client) ***/
-async function sha256(text){
-  const enc = new TextEncoder().encode(text);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-/*** 1) Auth popup→redirect fallback ***/
-function providerSignin(p){ p.setCustomParameters({prompt:'select_account'}); return auth.signInWithPopup(p).catch(async e=>{
-  if(['auth/operation-not-supported-in-this-environment','auth/popup-blocked','auth/popup-closed-by-user'].includes(e.code)){
-    await auth.signInWithRedirect(p); return null;
-  } throw e;
-});}
-async function handleRedirect(){ try{ const r=await auth.getRedirectResult(); if(r&&r.user) onSignedIn(); }catch(e){ $('authMsg').textContent='Error: '+e.message; } }
+/* Auth (popup→redirect fallback) */
+function providerSignin(p){p.setCustomParameters({prompt:'select_account'});return auth.signInWithPopup(p).catch(async e=>{if(['auth/operation-not-supported-in-this-environment','auth/popup-blocked','auth/popup-closed-by-user'].includes(e.code)){await auth.signInWithRedirect(p);return null}throw e})}
+async function handleRedirect(){try{const r=await auth.getRedirectResult();if(r&&r.user) onSignedIn()}catch(e){$('authMsg').textContent='Error: '+e.message}}
 handleRedirect();
+$('googleBtn').onclick=async()=>{try{const r=await providerSignin(new firebase.auth.GoogleAuthProvider());if(r&&r.user)onSignedIn()}catch(e){$('authMsg').textContent='Error: '+e.message}}
+$('microsoftBtn').onclick=async()=>{try{const m=new firebase.auth.OAuthProvider('microsoft.com');m.addScope('openid');m.addScope('profile');m.addScope('email');const r=await providerSignin(m);if(r&&r.user)onSignedIn()}catch(e){$('authMsg').textContent='Error: '+e.message}}
 
-$('googleBtn').onclick = async ()=>{ try{ const r=await providerSignin(new firebase.auth.GoogleAuthProvider()); if(r&&r.user) onSignedIn(); }catch(e){ $('authMsg').textContent='Error: '+e.message; } };
-$('microsoftBtn').onclick = async ()=>{ try{ const m=new firebase.auth.OAuthProvider('microsoft.com'); m.addScope('openid');m.addScope('profile');m.addScope('email'); const r=await providerSignin(m); if(r&&r.user) onSignedIn(); }catch(e){ $('authMsg').textContent='Error: '+e.message; } };
-
-/*** 2) After sign-in → profile or greet ***/
 async function onSignedIn(){
-  const u=auth.currentUser; $('authMsg').textContent='Signed in as '+u.email;
-  // check profile
-  const doc = await db.collection('faculty').doc(u.uid).get();
-  if(doc.exists){
-    const f = doc.data();
-    $('greetTitle').textContent = `Hello, ${f.salutation||''} ${f.name||''}`.replace('  ',' ');
-    $('greetSub').textContent = dayPart();
-    show('signupPanel', false); show('greetPanel', true);
-  }else{
-    // show signup
-    show('signupPanel', true);
-  }
+  const u=auth.currentUser;$('authMsg').textContent='Signed in as '+u.email;
+  const doc=await db.collection('faculty').doc(u.uid).get();
+  if(doc.exists){const f=doc.data();$('greetTitle').textContent=`Hello, ${(f.salutation||'')} ${(f.name||'')}`.replace('  ',' ');$('greetSub').textContent=dayPart();show('signupPanel',false);show('greetPanel',true)}
+  else{show('signupPanel',true)}
 }
 
-/*** Signup flow (one time) ***/
-$('signupBtn').onclick = async ()=>{
-  const u = auth.currentUser; if(!u) return alert('Sign in first');
-  const sal = $('salutation').value.trim();
-  const name= $('fname').value.trim();
-  const pass= $('fpass').value;
-  const pass2=$('fpass2').value;
-  const mail= $('femail').value.trim();
-
-  if(!sal || !name || !pass || !pass2 || !mail) return $('signupMsg').textContent='All fields are required.';
+/* Signup */
+$('signupBtn').onclick=async()=>{
+  const u=auth.currentUser;if(!u)return alert('Sign in first');
+  const sal=$('salutation').value.trim(),name=$('fname').value.trim(),pass=$('fpass').value,pass2=$('fpass2').value,mail=$('femail').value.trim();
+  if(!sal||!name||!pass||!pass2||!mail) return $('signupMsg').textContent='All fields are required.';
   if(!/^[A-Za-z ]{3,}$/.test(name)) return $('signupMsg').textContent='Name must contain alphabets/spaces only.';
   if(pass!==pass2) return $('signupMsg').textContent='Passwords do not match.';
   if(!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(pass)) return $('signupMsg').textContent='Use at least 8 chars with letters & numbers.';
-
-  const pHash = await sha256(pass);
-  await db.collection('faculty').doc(u.uid).set({
-    uid:u.uid, salutation:sal, name, email_report:mail, pass_hash:pHash,
-    created_at: firebase.firestore.FieldValue.serverTimestamp(), device_id: deviceId()
-  });
-  $('signupMsg').textContent='Profile saved. Redirecting…';
-  setTimeout(onSignedIn, 600);
+  const pHash=await sha256(pass);
+  await db.collection('faculty').doc(u.uid).set({uid:u.uid,salutation:sal,name,email_report:mail,pass_hash:pHash,created_at:firebase.firestore.FieldValue.serverTimestamp(),device_id:deviceId()});
+  $('signupMsg').textContent='Profile saved. Redirecting…';setTimeout(onSignedIn,600);
 };
 
-/*** 3) “Login to take Attendance” (select from list + password verify) ***/
-$('goLogin').onclick = ()=>{ show('loginBox', true); };
-
-$('loginProceed').onclick = async ()=>{
-  const u=auth.currentUser; if(!u) return alert('Sign in first');
-  const pick = $('loginFaculty').value.trim();
-  const pwd  = $('loginPass').value;
-  if(!pick || !pwd) return $('loginMsg').textContent='Select your name and enter password.';
-  const prof = await db.collection('faculty').doc(u.uid).get();
-  if(!prof.exists) return $('loginMsg').textContent='Complete signup first.';
-  const data = prof.data();
-  const full = `${data.salutation||''} ${data.name||''}`.replace('  ',' ');
-  if(full !== pick) return $('loginMsg').textContent='Selected name does not match your profile.';
-  const ok = (await sha256(pwd)) === data.pass_hash;
-  if(!ok) return $('loginMsg').textContent='Incorrect password.';
-  $('loginMsg').textContent='Login verified. Opening control panel…';
-  show('greetPanel', false); initControlPanel(data);
+/* Login to take attendance */
+$('goLogin').onclick=()=>show('loginBox',true);
+$('loginProceed').onclick=async()=>{
+  const u=auth.currentUser;if(!u)return alert('Sign in first');
+  const pick=$('loginFaculty').value.trim(),pwd=$('loginPass').value;
+  if(!pick||!pwd){$('loginMsg').textContent='Select your name and enter password.';return}
+  const prof=await db.collection('faculty').doc(u.uid).get();if(!prof.exists){$('loginMsg').textContent='Complete signup first.';return}
+  const data=prof.data(),full=`${data.salutation||''} ${data.name||''}`.replace('  ',' '),ok=(await sha256(pwd))===data.pass_hash;
+  if(full!==pick){$('loginMsg').textContent='Selected name does not match your profile.';return}
+  if(!ok){$('loginMsg').textContent='Incorrect password.';return}
+  $('loginMsg').textContent='Login verified. Opening control panel…';show('greetPanel',false);initControlPanel();
 };
 
-/*** 4) Control Panel logic ***/
-let slotId=null, qrTimer=null, listenerAtt=null, listenerRt=null, attendanceRows=[];
-function enableSessionButtons(on){
-  $('pauseBtn').disabled=!on; $('resumeBtn').disabled=!on; $('extendBtn').disabled=!on; $('endBtn').disabled=!on;
-  $('downloadBtn').disabled=!on; $('emailBtn').disabled=!on;
-}
-function nowSec(){ return Math.floor(Date.now()/1000); }
+/* Control panel */
+let slotId=null,qrTimer=null,listenerAtt=null,listenerRt=null,attendanceRows=[];
+$('dateField').value=formatDateHuman(new Date());
+function enableSessionButtons(on){$('pauseBtn').disabled=!on;$('resumeBtn').disabled=!on;$('extendBtn').disabled=!on;$('endBtn').disabled=!on;$('downloadBtn').disabled=!on;$('emailBtn').disabled=!on}
+function nowSec(){return Math.floor(Date.now()/1000)}
+async function getGeo(){return new Promise((res,rej)=>{if(!navigator.geolocation) return rej(new Error('Geolocation not supported'));navigator.geolocation.getCurrentPosition(p=>res(p),e=>rej(e),{enableHighAccuracy:true,timeout:15000,maximumAge:0})})}
 
-async function getGeo(){
-  return new Promise((res,rej)=>{
-    if(!navigator.geolocation) return rej(new Error('Geolocation not supported'));
-    navigator.geolocation.getCurrentPosition(p=>res(p),e=>rej(e),{enableHighAccuracy:true,timeout:15000,maximumAge:0});
-  });
-}
-
-function initControlPanel(profile){
-  $('dateField').value = formatDateHuman(new Date());
-  // prefill geofence
-  getGeo().then(g=>{
-    $('lat').value=g.coords.latitude.toFixed(12);
-    $('lng').value=g.coords.longitude.toFixed(12);
-  }).catch(()=>{ /* ignore */ });
-  show('ctrlPanel', true); show('attCard', true);
-
-  $('startBtn').onclick = startSession;
-  $('pauseBtn').onclick = pauseQR;
-  $('resumeBtn').onclick= resumeQR;
-  $('extendBtn').onclick= extendSession;
-  $('endBtn').onclick   = endSession;
-  $('downloadBtn').onclick = downloadCSV;
-  $('emailBtn').onclick    = sendEmail;
+function initControlPanel(){
+  getGeo().then(g=>{$('lat').value=g.coords.latitude.toFixed(12);$('lng').value=g.coords.longitude.toFixed(12)}).catch(()=>{});
+  show('ctrlPanel',true);show('attCard',true);
+  $('startBtn').onclick=startSession;$('pauseBtn').onclick=pauseQR;$('resumeBtn').onclick=resumeQR;$('extendBtn').onclick=extendSession;$('endBtn').onclick=endSession;$('downloadBtn').onclick=downloadExcel;$('emailBtn').onclick=sendEmail;
 }
 
 async function startSession(){
-  const u=auth.currentUser; if(!u) return alert('Sign in first');
-
-  const course=$('course').value.trim(); if(!course) return alert('Select course');
-  const hours =Number($('hours').value||1);
-  const remarks=$('remarks').value.trim();
-  const lat   =Number($('lat').value); const lng=Number($('lng').value);
-  const radius=Number($('radius').value||60);
-  const rotate=Number($('rotate').value||15);
-  const life  =Number($('life').value||90);
-  const classId=$('classid').value.trim()||null;
-
-  const ref = await db.collection('slots').add({
-    course, hours, remarks, class_id: classId,
-    created_by: u.uid, host_email: u.email,
-    start_ts: firebase.firestore.FieldValue.serverTimestamp(),
-    status:'live',
-    qr_rotate_s: rotate, token_life_s: life,
-    room_lat: lat, room_lng: lng, radius_m: radius
+  const u=auth.currentUser;if(!u)return alert('Sign in first');
+  const course=$('course').value.trim();if(!course)return alert('Select course');
+  const hours=Number($('hours').value||1),remarks=$('remarks').value.trim(),lat=Number($('lat').value),lng=Number($('lng').value),radius=Number($('radius').value||60),rotate=Number($('rotate').value||15),life=Number($('life').value||90),classId=$('classid').value.trim()||null;
+  const ref=await db.collection('slots').add({course,hours,remarks,class_id:classId,created_by:u.uid,host_email:u.email,start_ts:firebase.firestore.FieldValue.serverTimestamp(),status:'live',qr_rotate_s:rotate,token_life_s:life,room_lat:lat,room_lng:lng,radius_m:radius});
+  slotId=ref.id;$('sessMsg').textContent='Live session started · slot='+slotId;$('startBtn').disabled=true;enableSessionButtons(true);startQR(rotate,life);
+  if(listenerAtt)listenerAtt();listenerAtt=db.collection('checkins').where('slot_id','==',slotId).orderBy('ts_server','desc').onSnapshot(s=>{attendanceRows=s.docs.map(d=>{const x=d.data(),t=x.ts_server?.toDate?.()||new Date();return{t,reg:x.reg_no||'—',name:x.name||'—',email:x.email||'—',status:x.result||'OK',acc:Math.round(x.acc_m||0),remarks:x.remarks||''}});renderAttendance()});
+  if(listenerRt)listenerRt();listenerRt=db.collection('raise_tokens').where('slot_id','==',slotId).where('state','==','open').onSnapshot(s=>{
+    s.docChanges().forEach(ch=>{if(ch.type==='added'){const x=ch.doc.data();showToast(`<strong>New token raised</strong><div>${x.email||x.student_uid}</div><div class="muted">${x.reason||''}</div>`)}});
+    $('tokens').innerHTML=s.empty?'No open tokens':s.docs.map(d=>{const x=d.data();return `<div style="margin:8px 0;padding:10px;border:1px solid rgba(255,255,255,.14);border-radius:12px">
+      <div><strong>${x.email||x.student_uid}</strong></div><div class="muted">${x.reason||''}</div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn green" onclick="resolveToken('${d.id}',true)">ACCEPT</button>
+        <button class="btn red" onclick="resolveToken('${d.id}',false)">REJECT</button>
+      </div></div>`}).join('');
   });
-  slotId=ref.id;
-  $('sessMsg').textContent='Live session started · slot='+slotId;
-  $('startBtn').disabled=true; enableSessionButtons(true);
-  startQR(rotate, life);
-
-  // live attendance
-  if(listenerAtt) listenerAtt();
-  listenerAtt = db.collection('checkins').where('slot_id','==',slotId).orderBy('ts_server','desc')
-    .onSnapshot(s=>{
-      attendanceRows = s.docs.map(d=>{
-        const x=d.data(); const t=x.ts_server?.toDate?.()||new Date();
-        return {
-          t,
-          reg:x.reg_no||'—',
-          name:x.name||'—',
-          email:x.email||'—',
-          status:x.result||'OK',
-          acc:Math.round(x.acc_m||0),
-          remarks:x.remarks||''
-        };
-      });
-      renderAttendance();
-    });
-
-  // live tokens
-  if(listenerRt) listenerRt();
-  listenerRt = db.collection('raise_tokens').where('slot_id','==',slotId).where('state','==','open')
-    .onSnapshot(s=>{
-      $('tokens').innerHTML = s.empty ? 'No open tokens' :
-        s.docs.map(d=>{
-          const x=d.data();
-          return `<div style="margin:8px 0; padding:10px; border:1px solid rgba(255,255,255,.14); border-radius:12px">
-            <div><strong>${x.email||x.student_uid}</strong></div>
-            <div class="muted">${x.reason||''}</div>
-            <div style="margin-top:8px; display:flex; gap:8px">
-              <button class="btn green" onclick="resolveToken('${d.id}', true)">ACCEPT</button>
-              <button class="btn red" onclick="resolveToken('${d.id}', false)">REJECT</button>
-            </div>
-          </div>`;
-        }).join('');
-    });
 }
+function renderAttendance(){$('att').innerHTML=attendanceRows.map(r=>`<tr><td>${r.t.toLocaleTimeString()}</td><td>${r.reg}</td><td>${r.name}</td><td>${r.email}</td><td>${r.status}</td><td>${r.acc}</td><td>${r.remarks}</td></tr>`).join('')}
+function startQR(rotateSec,lifeSec){if(qrTimer)clearInterval(qrTimer);const draw=()=>{const payload={ver:1,slot_id:slotId,issued:nowSec(),exp:nowSec()+lifeSec,nonce:crypto.randomUUID(),token_id:crypto.randomUUID()};const token=`att://v1.${btoa(JSON.stringify(payload))}.demo`;const holder=$('qr');holder.innerHTML='';new QRCode(holder,{text:token,width:260,height:260,correctLevel:QRCode.CorrectLevel.M});$('qrMsg').textContent=`QR refreshed · expires in ${lifeSec}s · rotates every ${rotateSec}s`};draw();qrTimer=setInterval(draw,rotateSec*1000);$('pauseBtn').disabled=false;$('resumeBtn').disabled=true}
+function pauseQR(){if(qrTimer){clearInterval(qrTimer);qrTimer=null;$('qrMsg').textContent='QR paused';$('pauseBtn').disabled=true;$('resumeBtn').disabled=false}}
+function resumeQR(){startQR(Number($('rotate').value||15),Number($('life').value||90))}
+async function extendSession(){if(!slotId)return;await db.collection('slots').doc(slotId).update({extend_ts:firebase.firestore.FieldValue.serverTimestamp()});$('sessMsg').textContent='Session extended by 3 minutes (marker logged)'}
+async function endSession(){if(qrTimer){clearInterval(qrTimer);qrTimer=null}if(slotId){await db.collection('slots').doc(slotId).update({status:'closed',end_ts:firebase.firestore.FieldValue.serverTimestamp()})}$('qr').innerHTML='';$('qrMsg').textContent='QR idle';$('sessMsg').textContent='Session ended.';enableSessionButtons(false);$('startBtn').disabled=false;if(listenerAtt)listenerAtt();if(listenerRt)listenerRt();slotId=null}
 
-function renderAttendance(){
-  $('att').innerHTML = attendanceRows.map(r=>
-    `<tr><td>${r.t.toLocaleTimeString()}</td><td>${r.reg}</td><td>${r.name}</td><td>${r.email}</td><td>${r.status}</td><td>${r.acc}</td><td>${r.remarks}</td></tr>`
-  ).join('');
-}
+/* Token resolution */
+window.resolveToken=async(id,accept)=>{await db.collection('raise_tokens').doc(id).update({state:accept?'accepted':'denied',resolved_ts:firebase.firestore.FieldValue.serverTimestamp()});if(accept&&slotId){const tok=await db.collection('raise_tokens').doc(id).get();await db.collection('checkins').add({student_uid:tok.data()?.student_uid||null,email:tok.data()?.email||'unknown@student',reg_no:tok.data()?.reg_no||null,slot_id:slotId,class_id:null,ts_client:new Date(),ts_server:firebase.firestore.FieldValue.serverTimestamp(),lat:null,lng:null,acc_m:null,device_id:'override',token_id:'FAC_OVERRIDE',method:'FACULTY',result:'OK',remarks:'Faculty Override'})}};
 
-function startQR(rotateSec, lifeSec){
-  if(qrTimer) clearInterval(qrTimer);
-  function draw(){
-    const payload = { ver:1, slot_id: slotId, issued: nowSec(), exp: nowSec()+lifeSec, nonce: crypto.randomUUID(), token_id: crypto.randomUUID() };
-    const token = `att://v1.${btoa(JSON.stringify(payload))}.demo`;
-    const holder=$('qr'); holder.innerHTML='';
-    new QRCode(holder, { text: token, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M });
-    $('qrMsg').textContent = `QR refreshed · expires in ${lifeSec}s · rotates every ${rotateSec}s`;
-  }
-  draw();
-  qrTimer = setInterval(draw, rotateSec*1000);
-  $('pauseBtn').disabled=false; $('resumeBtn').disabled=true;
+/* Excel export (SheetJS) */
+function downloadExcel(){
+  if(!attendanceRows.length){alert('No attendance yet');return}
+  const data=[['Time','Reg No','Name','Email','Status','Accuracy(m)','Remarks']];
+  attendanceRows.forEach(r=>data.push([r.t.toISOString(),r.reg,r.name,r.email,r.status,r.acc,r.remarks]));
+  const ws=XLSX.utils.aoa_to_sheet(data), wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Attendance');
+  const course=($('course').value.trim()||'course').replace(/[^\w\-]+/g,'_');XLSX.writeFile(wb,`attendance_${course}_${new Date().toISOString().slice(0,10)}.xlsx`)
 }
-function pauseQR(){ if(qrTimer){ clearInterval(qrTimer); qrTimer=null; $('qrMsg').textContent='QR paused'; $('pauseBtn').disabled=true; $('resumeBtn').disabled=false; } }
-function resumeQR(){ const r=Number($('rotate').value||15), l=Number($('life').value||90); startQR(r,l); }
-async function extendSession(){
-  if(!slotId) return;
-  await db.collection('slots').doc(slotId).update({ extend_ts: firebase.firestore.FieldValue.serverTimestamp() });
-  $('sessMsg').textContent='Session extended by 3 minutes (marker logged)';
-}
-async function endSession(){
-  if(qrTimer){ clearInterval(qrTimer); qrTimer=null; }
-  if(slotId){ await db.collection('slots').doc(slotId).update({ status:'closed', end_ts: firebase.firestore.FieldValue.serverTimestamp() }); }
-  $('qr').innerHTML=''; $('qrMsg').textContent='QR idle';
-  $('sessMsg').textContent='Session ended.';
-  enableSessionButtons(false); $('startBtn').disabled=false;
-  if(listenerAtt) listenerAtt(); if(listenerRt) listenerRt();
-  slotId=null;
-}
+async function sendEmail(){const u=auth.currentUser;const prof=await db.collection('faculty').doc(u.uid).get();const to=prof.data()?.email_report||u.email;const subj=encodeURIComponent('PQRSTU Attendance Report');const body=encodeURIComponent('Report generated from PQRSTU. Please find the downloaded Excel attached.\n\nRegards,\nPQRSTU System');window.location.href=`mailto:${encodeURIComponent(to)}?subject=${subj}&body=${body}`}
 
-/*** 5) Token resolution ***/
-window.resolveToken = async (id, accept)=>{
-  // update token
-  await db.collection('raise_tokens').doc(id).update({
-    state: accept ? 'accepted' : 'denied',
-    resolved_ts: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  // If accept → mark attendance with override
-  if(accept && slotId){
-    // Minimal info — student email present in token doc
-    const tok = await db.collection('raise_tokens').doc(id).get();
-    const email = tok.data()?.email || 'unknown@student';
-    await db.collection('checkins').add({
-      student_uid: tok.data()?.student_uid || null,
-      email, reg_no: tok.data()?.reg_no || null,
-      slot_id: slotId, class_id: null,
-      ts_client: new Date(), ts_server: firebase.firestore.FieldValue.serverTimestamp(),
-      lat:null, lng:null, acc_m:null, device_id:'override',
-      token_id: 'FAC_OVERRIDE', method:'FACULTY', result:'OK', remarks:'Faculty Override'
-    });
-  }
-};
-
-/*** 6) CSV & Email ***/
-function downloadCSV(){
-  if(!attendanceRows.length) return alert('No attendance yet');
-  const headers = ['Time','Reg No','Name','Email','Status','Accuracy(m)','Remarks'];
-  const rows = attendanceRows.map(r=>[r.t.toISOString(), r.reg, r.name, r.email, r.status, r.acc, r.remarks]);
-  const csv = [headers, ...rows].map(a=>a.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], {type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const course = $('course').value.trim() || 'course';
-  a.href = url; a.download = `attendance_${course}_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-
-async function sendEmail(){
-  const u=auth.currentUser; const prof = await db.collection('faculty').doc(u.uid).get();
-  const to = prof.data()?.email_report || u.email;
-  // NOTE: mailto cannot attach files. This opens a compose window with subject/body.
-  const subj = encodeURIComponent('PQRSTU Attendance Report');
-  const body = encodeURIComponent('Report generated from PQRSTU. Please find the downloaded CSV attached.\n\nRegards,\nPQRSTU System');
-  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${subj}&body=${body}`;
-}
-
-/*** init date on load ***/
-$('dateField').value = formatDateHuman();
+/* Prefill date and try geolocation */
+$('dateField').value=formatDateHuman();
 </script>
 </body>
 </html>
