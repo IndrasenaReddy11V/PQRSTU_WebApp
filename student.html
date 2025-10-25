@@ -9,14 +9,18 @@
 <style>
   :root{--bg1:#0b1220;--bg2:#141b2e;--text:#eaf0ff;--muted:#b8c0d9;--stroke:rgba(255,255,255,.12);--card:rgba(16,23,41,.62)}
   *{box-sizing:border-box}html,body{height:100%}
-  body{margin:0;font-family:Inter,system-ui,Arial,Segoe UI,sans-serif;color:var(--text);
-       background:radial-gradient(1200px 600px at 20% -10%, #2a3566 0%, transparent 60%),
-                  radial-gradient(1000px 700px at 100% 0%, #5b2231 0%, transparent 60%),
-                  linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
-       padding:20px;display:flex;justify-content:center}
+  body{
+    margin:0;font-family:Inter,system-ui,Arial,Segoe UI,sans-serif;color:var(--text);
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #2a3566 0%, transparent 60%),
+      radial-gradient(1000px 700px at 100% 0%, #5b2231 0%, transparent 60%),
+      linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
+    padding:20px;display:flex;justify-content:center
+  }
   .wrap{width:min(960px,100%)}
   .card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:18px;margin:18px 0;
-        box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 50px rgba(0,0,0,.24);opacity:0;transform:translateY(8px);animation:up .55s .1s forwards}
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 50px rgba(0,0,0,.24);
+        opacity:0;transform:translateY(8px);animation:up .55s .1s forwards}
   @keyframes up{to{opacity:1;transform:none}}
   .muted{color:var(--muted)}
   .loginbox{max-width:480px;margin-inline:auto;text-align:center}
@@ -116,12 +120,12 @@ let lastGeo=null;
 function getGeoOnce(){return new Promise((res,rej)=>{if(!navigator.geolocation)return rej(new Error('Geolocation not supported'));navigator.geolocation.getCurrentPosition(p=>res(p),e=>rej(e),{enableHighAccuracy:true,timeout:15000,maximumAge:0})})}
 async function captureGeoSilently(){try{const p=await getGeoOnce();lastGeo={lat:p.coords.latitude,lng:p.coords.longitude,acc_m:p.coords.accuracy,ts_ms:Date.now()}}catch(_){}}
 
-/* SSO (popup→redirect fallback) */
+/* SSO */
 async function signInWithProvider(provider){provider.setCustomParameters({prompt:'select_account'});try{return await auth.signInWithPopup(provider)}catch(e){if(['auth/operation-not-supported-in-this-environment','auth/popup-blocked','auth/popup-closed-by-user'].includes(e.code)){await auth.signInWithRedirect(provider);return null}else{throw e}}}
 async function handleRedirectResult(){try{const res=await auth.getRedirectResult();if(res&&res.user){onSignedIn('Redirect')}}catch(e){qs('authMsg').textContent='Error: '+e.message}} handleRedirectResult();
 
 qs('googleBtn').onclick=async()=>{try{await captureGeoSilently();const gp=new firebase.auth.GoogleAuthProvider();const r=await signInWithProvider(gp);if(r&&r.user)onSignedIn('Google')}catch(e){qs('authMsg').textContent='Error: '+e.message}}
-qs('microsoftBtn').onclick=async()=>{try{await captureGeoSilently();const ms=new firebase.auth.OAuthProvider('microsoft.com');ms.addScope('openid');ms.addScope('profile');ms.addScope('email');const r=await signInWithProvider(ms);if(r&&r.user)onSignedIn('Microsoft')}catch(e){qs('authMsg').textContent='Error: '+e.message+' (Enable Microsoft provider in Firebase & Azure app configured).'}}
+qs('microsoftBtn').onclick=async()=>{try{await captureGeoSilently();const ms=new firebase.auth.OAuthProvider('microsoft.com');ms.addScope('openid');ms.addScope('profile');ms.addScope('email');const r=await signInWithProvider(ms);if(r&&r.user)onSignedIn('Microsoft')}catch(e){qs('authMsg').textContent='Error: '+e.message+' (Enable Microsoft provider & Azure app).'}}
 
 async function onSignedIn(){const u=auth.currentUser;qs('authMsg').textContent=`Signed in as ${u.email}`;try{await db.collection('login_logs').add({uid:u.uid,email:u.email,ts_server:firebase.firestore.FieldValue.serverTimestamp(),lat:lastGeo?.lat||null,lng:lastGeo?.lng||null,acc_m:lastGeo?.acc_m||null,device_id:deviceId()})}catch(_){}const doc=await db.collection('users').doc(u.uid).get();if(doc.exists){qs('hi').textContent='Hi '+(doc.data().name||'Student');show('authPanel',false);show('signupPanel',false);show('homePanel',true);checkLiveSession()}else{show('authPanel',false);show('signupPanel',true)}}
 
@@ -134,22 +138,103 @@ qs('signupBtn').onclick=async()=>{const u=auth.currentUser;if(!u)return alert('S
 let currentSlot=null;
 async function checkLiveSession(){qs('liveHint').textContent='Checking live attendance…';try{const snap=await db.collection('slots').where('status','==','live').limit(1).get();if(snap.empty){qs('liveHint').textContent='No attendance is live now';qs('goMark').onclick=()=>alert('⚠️ No attendance is on live now!');qs('goMark').style.background='linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25))';currentSlot=null}else{currentSlot={id:snap.docs[0].id,...snap.docs[0].data()};qs('liveHint').textContent='Attendance is live now! You may mark your attendance.';qs('goMark').style.background='linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))';qs('goMark').onclick=()=>{show('homePanel',false);show('attPanel',true);db.collection('users').doc(auth.currentUser.uid).get().then(p=>{if(p.exists)qs('areg').value=p.data().reg_no})}}}catch(err){console.error(err);qs('liveHint').textContent='Could not check session (try refresh).';qs('goMark').onclick=()=>alert('Could not check session yet. Try refresh.')}}
 
-/* QR scanner (robust) */
+/* Camera Scanner (Fully Fixed) */
 let html5Qr=null,lastToken=null,parsed=null;
 function setScanMsg(m){qs('scanMsg').textContent=m}
-function isVisible(el){const r=el.getBoundingClientRect();return !!(r.width&&r.height&&getComputedStyle(el).display!=='none')}
-async function ensureCameraPermission(){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Camera API not supported');try{const s=await navigator.mediaDevices.getUserMedia({video:true,audio:false});s.getTracks().forEach(t=>t.stop());return true}catch(e){throw new Error('Please allow Camera permission in your browser settings.')}}
-qs('startScan').onclick=async()=>{const box=qs('scanner');if(html5Qr){setScanMsg('Scanner already running');return}if(!isVisible(box)){setScanMsg('Open the attendance panel before starting the camera.');return}try{await ensureCameraPermission()}catch(e){setScanMsg(e.message);return}html5Qr=new Html5Qrcode("scanner");setScanMsg('Starting camera…');try{const cams=await Html5Qrcode.getCameras();let camId=null;if(cams&&cams.length){const back=cams.find(c=>/back|rear|environment/i.test(c.label));camId=(back&&back.id)||cams[cams.length-1].id}const config=camId?{deviceId:{exact:camId}}:{facingMode:{ideal:'environment'}};await html5Qr.start(config,{fps:10,qrbox:{width:260,height:260}},(text)=>{lastToken=text.trim();try{const parts=lastToken.startsWith('att://')?lastToken.split('.'): [null,lastToken];const payload=atob(parts[1]);parsed=JSON.parse(payload);setScanMsg(`Token OK · slot=${parsed.slot_id} · exp=${new Date(parsed.exp*1000).toLocaleTimeString()}`)}catch(_){parsed=null;setScanMsg('Invalid token')}});setScanMsg('Camera started. Point to the live QR.')}catch(e){setScanMsg(`Camera error: ${e?.message||e}. Ensure HTTPS and allow Camera permission.`);try{await html5Qr?.stop();html5Qr?.clear()}catch(_){}html5Qr=null}}
-qs('stopScan').onclick=async()=>{if(!html5Qr){setScanMsg('Scanner is not running');return}try{await html5Qr.stop();html5Qr.clear();setScanMsg('Scanner stopped')}catch(e){setScanMsg('Stop error (ignored): '+(e?.message||e))}finally{html5Qr=null}}
+
+async function startCamera(){
+  if(html5Qr){setScanMsg('Scanner already running');return}
+  const scanEl=qs('scanner');
+  setScanMsg('Requesting camera access...');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){return setScanMsg('Camera API not supported on this device/browser')}
+  try{
+    // request inside click gesture
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false});
+    stream.getTracks().forEach(t=>t.stop()); // stop immediately, we only needed grant
+  }catch(e){return setScanMsg('Camera permission denied or unavailable.')}
+
+  try{
+    html5Qr=new Html5Qrcode("scanner",{verbose:false});
+    const devices=await Html5Qrcode.getCameras();
+    const back=devices.find(c=>/back|rear|environment/i.test(c.label));
+    const camId=back?back.id:(devices[0]?.id||null);
+    if(!camId) return setScanMsg('No camera found.');
+
+    await html5Qr.start(
+      {deviceId:{exact:camId}},
+      {fps:10,qrbox:{width:260,height:260}},
+      decodedText=>{
+        lastToken=decodedText.trim();
+        try{
+          const parts=lastToken.startsWith('att://')?lastToken.split('.'):[null,lastToken];
+          const payload=atob(parts[1]); parsed=JSON.parse(payload);
+          setScanMsg(`Token OK · slot=${parsed.slot_id} · exp=${new Date(parsed.exp*1000).toLocaleTimeString()}`);
+        }catch{parsed=null;setScanMsg('Invalid QR token')}
+      },
+      _err=>{} // ignore frame decode errors
+    );
+    setScanMsg('Camera started. Point to the live QR.');
+  }catch(e){
+    setScanMsg('Camera startup failed: '+(e?.message||e));
+    if(html5Qr){try{await html5Qr.stop();html5Qr.clear()}catch{} html5Qr=null}
+  }
+}
+qs('startScan').onclick=()=>startCamera();
+qs('stopScan').onclick=async()=>{if(!html5Qr)return setScanMsg('Scanner not running');try{await html5Qr.stop();html5Qr.clear();setScanMsg('Scanner stopped')}catch(e){setScanMsg('Error stopping camera: '+(e?.message||e))}finally{html5Qr=null}}
 
 /* distance */
 function distM(a,b){const toR=x=>x*Math.PI/180,R=6371000;const dLat=toR(b.lat-a.lat),dLng=toR(b.lng-a.lng);const lat1=toR(a.lat),lat2=toR(b.lat);const A=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A))}
 
 /* submit attendance */
-qs('markBtn').onclick=async()=>{const u=auth.currentUser;if(!u)return alert('Sign in first');const reg=qs('areg').value.trim(),pass=qs('apass').value.trim();if(!validReg(reg))return alert('Registration No format invalid');if(!validDob(pass))return alert('Password (DOB) format invalid');if(!parsed)return alert('Scan the live QR first');if(!currentSlot||parsed.slot_id!==currentSlot.id)return alert('This QR is not for the active session');if(!lastGeo)await captureGeoSilently();if(currentSlot.room_lat&&currentSlot.room_lng){const d=distM({lat:lastGeo?.lat||0,lng:lastGeo?.lng||0},{lat:currentSlot.room_lat,lng:currentSlot.room_lng});if(!lastGeo||d>(currentSlot.radius_m||60))return alert("You're not in classroom range to mark your attendance. Please contact faculty!")}await db.collection('checkins').add({student_uid:u.uid,email:u.email,reg_no:reg,slot_id:currentSlot.id,class_id:currentSlot.class_id||null,ts_client:new Date(),ts_server:firebase.firestore.FieldValue.serverTimestamp(),lat:lastGeo?.lat||null,lng:lastGeo?.lng||null,acc_m:lastGeo?.acc_m||null,device_id:deviceId(),token_id:parsed.token_id||null,method:'QR',result:'OK'});document.getElementById('successOverlay').style.display='flex';setTimeout(()=>{document.getElementById('successOverlay').style.display='none'},1800)}
+qs('markBtn').onclick=async()=>{
+  const u=auth.currentUser;if(!u)return alert('Sign in first');
+  const reg=qs('areg').value.trim(),pass=qs('apass').value.trim();
+  if(!validReg(reg))return alert('Registration No format invalid');
+  if(!validDob(pass))return alert('Password (DOB) format invalid');
+  if(!parsed)return alert('Scan the live QR first');
+  if(!currentSlot||parsed.slot_id!==currentSlot.id)return alert('This QR is not for the active session');
+  if(!lastGeo)await captureGeoSilently();
+  if(currentSlot.room_lat&&currentSlot.room_lng){
+    const d=distM({lat:lastGeo?.lat||0,lng:lastGeo?.lng||0},{lat:currentSlot.room_lat,lng:currentSlot.room_lng});
+    if(!lastGeo||d>(currentSlot.radius_m||60))return alert("You're not in classroom range to mark your attendance. Please contact faculty!");
+  }
+  await db.collection('checkins').add({
+    student_uid:u.uid,email:u.email,reg_no:reg,
+    slot_id:currentSlot.id,class_id:currentSlot.class_id||null,
+    ts_client:new Date(),ts_server:firebase.firestore.FieldValue.serverTimestamp(),
+    lat:lastGeo?.lat||null,lng:lastGeo?.lng||null,acc_m:lastGeo?.acc_m||null,
+    device_id:deviceId(),token_id:parsed.token_id||null,method:'QR',result:'OK'
+  });
+  document.getElementById('successOverlay').style.display='flex';
+  setTimeout(()=>{document.getElementById('successOverlay').style.display='none'},1800)
+}
 
 /* raise token */
-qs('raiseBtn').onclick=async()=>{const u=auth.currentUser;if(!u)return alert('Sign in first');const reason=qs('rtReason').value.trim();if(!reason)return alert('Reason is mandatory');await db.collection('raise_tokens').add({student_uid:u.uid,email:u.email,reason,state:'open',slot_id:currentSlot?.id||parsed?.slot_id||null,created_ts:firebase.firestore.FieldValue.serverTimestamp()});qs('rtMsg').textContent='Token raised. Faculty will see it instantly.'}
+qs('raiseBtn').onclick=async()=>{
+  const u=auth.currentUser;if(!u)return alert('Sign in first');
+  const reason=qs('rtReason').value.trim();if(!reason)return alert('Reason is mandatory');
+  await db.collection('raise_tokens').add({
+    student_uid:u.uid,email:u.email,reason,state:'open',
+    slot_id:currentSlot?.id||parsed?.slot_id||null,
+    created_ts:firebase.firestore.FieldValue.serverTimestamp()
+  });
+  qs('rtMsg').textContent='Token raised. Faculty will see it instantly.';
+}
+
+/* Student sees immediate ACCEPT/REJECT feedback */
+auth.onAuthStateChanged(u=>{
+  if(!u) return;
+  db.collection('raise_tokens').where('student_uid','==',u.uid)
+    .onSnapshot(snap=>{
+      snap.docChanges().forEach(ch=>{
+        if(ch.type==='modified'){
+          const d=ch.doc.data();
+          if(d.state==='accepted') alert('✅ Your attendance has been approved by faculty!');
+          if(d.state==='denied')   alert('❌ Sorry, your token was rejected.');
+        }
+      });
+    });
+});
 
 captureGeoSilently();
 </script>
