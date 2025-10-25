@@ -60,6 +60,7 @@
   table{width:100%;border-collapse:collapse;font-size:14px}
   th,td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 6px;text-align:left;vertical-align:top}
   .hidden{display:none}
+  /* Toasts */
   #toast{position:fixed;right:18px;bottom:18px;z-index:99999;display:flex;flex-direction:column;gap:10px}
   .toast{background:rgba(16,23,41,.92);border:1px solid rgba(255,255,255,.12);color:#eaf0ff;padding:12px 14px;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.35);max-width:360px;animation:toastIn .25s ease}
   .toast strong{display:block;margin-bottom:6px}
@@ -211,7 +212,7 @@ const auth=firebase.auth(), db=firebase.firestore();
 const $=id=>document.getElementById(id);
 const show=(id,on=true)=>$(id).classList.toggle('hidden',!on);
 function dayPart(){const h=new Date().getHours();return h<12?'Good Morning!':h<17?'Good Afternoon!':'Good Evening!'}
-function formatDateHuman(d=new Date()){const day=d.getDate();const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0]};return ${day}${ord(day)} ${d.toLocaleString('en-GB',{month:'long'})}, ${d.getFullYear()}}
+function formatDateHuman(d=new Date()){const day=d.getDate();const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0]};return `${day}${ord(day)} ${d.toLocaleString('en-GB',{month:'long'})}, ${d.getFullYear()}`}
 function deviceId(){const k='pqr_fac_device';let v=localStorage.getItem(k);if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}return v}
 async function sha256(t){const b=new TextEncoder().encode(t);const d=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(d)).map(x=>x.toString(16).padStart(2,'0')).join('')}
 function showToast(html,ms=3500){const box=$('toast');const t=document.createElement('div');t.className='toast';t.innerHTML=html;box.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .2s';setTimeout(()=>t.remove(),220)},ms)}
@@ -226,7 +227,7 @@ $('microsoftBtn').onclick=async()=>{try{const m=new firebase.auth.OAuthProvider(
 async function onSignedIn(){
   const u=auth.currentUser;$('authMsg').textContent='Signed in as '+u.email;
   const doc=await db.collection('faculty').doc(u.uid).get();
-  if(doc.exists){const f=doc.data();$('greetTitle').textContent=Hello, ${(f.salutation||'')} ${(f.name||'')}.replace('  ',' ');$('greetSub').textContent=dayPart();show('signupPanel',false);show('greetPanel',true)}
+  if(doc.exists){const f=doc.data();$('greetTitle').textContent=`Hello, ${(f.salutation||'')} ${(f.name||'')}`.replace('  ',' ');$('greetSub').textContent=dayPart();show('signupPanel',false);show('greetPanel',true)}
   else{show('signupPanel',true)}
 }
 
@@ -237,7 +238,7 @@ $('signupBtn').onclick=async()=>{
   if(!sal||!name||!pass||!pass2||!mail) return $('signupMsg').textContent='All fields are required.';
   if(!/^[A-Za-z ]{3,}$/.test(name)) return $('signupMsg').textContent='Name must contain alphabets/spaces only.';
   if(pass!==pass2) return $('signupMsg').textContent='Passwords do not match.';
-  if(!/^(?=.[A-Za-z])(?=.\d).{8,}$/.test(pass)) return $('signupMsg').textContent='Use at least 8 chars with letters & numbers.';
+  if(!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(pass)) return $('signupMsg').textContent='Use at least 8 chars with letters & numbers.';
   const pHash=await sha256(pass);
   await db.collection('faculty').doc(u.uid).set({uid:u.uid,salutation:sal,name,email_report:mail,pass_hash:pHash,created_at:firebase.firestore.FieldValue.serverTimestamp(),device_id:deviceId()});
   $('signupMsg').textContent='Profile saved. Redirecting…';setTimeout(onSignedIn,600);
@@ -250,7 +251,7 @@ $('loginProceed').onclick=async()=>{
   const pick=$('loginFaculty').value.trim(),pwd=$('loginPass').value;
   if(!pick||!pwd){$('loginMsg').textContent='Select your name and enter password.';return}
   const prof=await db.collection('faculty').doc(u.uid).get();if(!prof.exists){$('loginMsg').textContent='Complete signup first.';return}
-  const data=prof.data(),full=${data.salutation||''} ${data.name||''}.replace('  ',' '),ok=(await sha256(pwd))===data.pass_hash;
+  const data=prof.data(),full=`${data.salutation||''} ${data.name||''}`.replace('  ',' '),ok=(await sha256(pwd))===data.pass_hash;
   if(full!==pick){$('loginMsg').textContent='Selected name does not match your profile.';return}
   if(!ok){$('loginMsg').textContent='Incorrect password.';return}
   $('loginMsg').textContent='Login verified. Opening control panel…';show('greetPanel',false);initControlPanel();
@@ -269,21 +270,28 @@ function initControlPanel(){
   $('startBtn').onclick=startSession;$('pauseBtn').onclick=pauseQR;$('resumeBtn').onclick=resumeQR;$('extendBtn').onclick=extendSession;$('endBtn').onclick=endSession;$('downloadBtn').onclick=downloadExcel;$('emailBtn').onclick=sendEmail;
 }
 
-/* QR token generation */
+/* === QR token generation: att://v1.<base64>.<sig> === */
 function makeToken(payload){
   const base64 = btoa(JSON.stringify(payload));
-  const sig = 'demo';
-  return att://v1.${base64}.${sig};
+  const sig = 'demo'; // replace with HMAC if you add server verification
+  return `att://v1.${base64}.${sig}`;
 }
 function startQR(rotateSec,lifeSec){
   if(qrTimer) clearInterval(qrTimer);
   const draw=()=>{
     if(!slotId) return;
-    const payload={ver:1,slot_id:slotId,issued:nowSec(),exp:nowSec()+lifeSec,nonce:crypto.randomUUID(),token_id:crypto.randomUUID()};
+    const payload={
+      ver:1,
+      slot_id:slotId,
+      issued:nowSec(),
+      exp:nowSec()+lifeSec,
+      nonce:crypto.randomUUID(),
+      token_id:crypto.randomUUID()
+    };
     const token = makeToken(payload);
     const holder=$('qr'); holder.innerHTML='';
     new QRCode(holder,{text:token,width:260,height:260,correctLevel:QRCode.CorrectLevel.M});
-    $('qrMsg').textContent=QR refreshed · expires in ${lifeSec}s · rotates every ${rotateSec}s;
+    $('qrMsg').textContent=`QR refreshed · expires in ${lifeSec}s · rotates every ${rotateSec}s`;
   };
   draw();
   qrTimer=setInterval(draw,rotateSec*1000);
@@ -294,28 +302,28 @@ async function startSession(){
   const u=auth.currentUser;if(!u)return alert('Sign in first');
   const course=$('course').value.trim();if(!course)return alert('Select course');
   const hours=Number($('hours').value||1),remarks=$('remarks').value.trim(),lat=Number($('lat').value),lng=Number($('lng').value),radius=Number($('radius').value||60),rotate=Number($('rotate').value||15),life=Number($('life').value||90),classId=$('classid').value.trim()||null;
-  const ref=await db.collection('slots').add({
-    course,hours,remarks,class_id:classId,created_by:u.uid,host_email:u.email,
-    start_ts:firebase.firestore.FieldValue.serverTimestamp(),
-    status:'live',qr_rotate_s:rotate,token_life_s:life,room_lat:lat,room_lng:lng,radius_m:radius
-  });
+  const ref=await db.collection('slots').add({course,hours,remarks,class_id:classId,created_by:u.uid,host_email:u.email,start_ts:firebase.firestore.FieldValue.serverTimestamp(),status:'live',qr_rotate_s:rotate,token_life_s:life,room_lat:lat,room_lng:lng,radius_m:radius});
   slotId=ref.id;$('sessMsg').textContent='Live session started · slot='+slotId;$('startBtn').disabled=true;enableSessionButtons(true);startQR(rotate,life);
 
+  // Live attendance table
   if(listenerAtt)listenerAtt();
   listenerAtt=db.collection('checkins').where('slot_id','==',slotId).orderBy('ts_server','desc')
     .onSnapshot(s=>{
-      attendanceRows=s.docs.map(d=>{const x=d.data(),t=x.ts_server?.toDate?.()||new Date();return{t,reg:x.reg_no||'—',name:x.name||'—',email:x.email||'—',status:x.result||'OK',acc:Math.round(x.acc_m||0),remarks:x.remarks||''}});
+      attendanceRows=s.docs.map(d=>{
+        const x=d.data(),t=x.ts_server?.toDate?.()||new Date();
+        return {t,reg:x.reg_no||'—',name:x.name||'—',email:x.email||'—',status:x.result||'OK',acc:Math.round(x.acc_m||0),remarks:x.remarks||''};
+      });
       renderAttendance();
     });
 
-  /* Real-time Raise Tokens — faculty & slot scoped (Option B) */
+  // Real-time Raise Token toasts + list (faculty+slot scoped)
   if(listenerRt)listenerRt();
   listenerRt = db.collection('raise_tokens')
     .where('faculty_uid','==',u.uid)
     .where('slot_id','==',slotId)
     .where('state','==','open')
+    .orderBy('created_ts','desc')
     .onSnapshot(snap=>{
-      // Toast on new tokens
       snap.docChanges().forEach(ch=>{
         if(ch.type==='added'){
           const x=ch.doc.data();
@@ -325,7 +333,6 @@ async function startSession(){
             <div class="muted">${x.reason||''}</div>`);
         }
       });
-      // Render list
       const items=[];
       snap.forEach(d=>{
         const x=d.data();
@@ -359,7 +366,7 @@ async function endSession(){
 
 function renderAttendance(){
   $('att').innerHTML = attendanceRows.map(r=>
-    <tr><td>${r.t.toLocaleTimeString()}</td><td>${r.reg}</td><td>${r.name}</td><td>${r.email}</td><td>${r.status}</td><td>${r.acc}</td><td>${r.remarks}</td></tr>
+    `<tr><td>${r.t.toLocaleTimeString()}</td><td>${r.reg}</td><td>${r.name}</td><td>${r.email}</td><td>${r.status}</td><td>${r.acc}</td><td>${r.remarks}</td></tr>`
   ).join('');
 }
 
@@ -387,7 +394,7 @@ window.resolveToken=async(id,accept)=>{
       method: 'FACULTY', result: 'OK', remarks: 'Faculty Override'
     });
   }
-  showToast(<strong>Token ${accept?'accepted':'denied'}</strong><div>${t.student_name||'Student'} · ${t.reg_no||''}</div>, 2500);
+  showToast(`<strong>Token ${accept?'accepted':'denied'}</strong><div>${t.student_name||'Student'} · ${t.reg_no||''}</div>`, 2500);
 };
 
 /* Excel export */
@@ -396,14 +403,14 @@ function downloadExcel(){
   const data=[['Time','Reg No','Name','Email','Status','Accuracy(m)','Remarks']];
   attendanceRows.forEach(r=>data.push([r.t.toISOString(),r.reg,r.name,r.email,r.status,r.acc,r.remarks]));
   const ws=XLSX.utils.aoa_to_sheet(data), wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Attendance');
-  const course=($('course').value.trim()||'course').replace(/[^\w\-]+/g,'_');XLSX.writeFile(wb,attendance_${course}_${new Date().toISOString().slice(0,10)}.xlsx);
+  const course=($('course').value.trim()||'course').replace(/[^\w\-]+/g,'_');XLSX.writeFile(wb,`attendance_${course}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 async function sendEmail(){
   const u=auth.currentUser;const prof=await db.collection('faculty').doc(u.uid).get();
   const to=prof.data()?.email_report||u.email;
   const subj=encodeURIComponent('PQRSTU Attendance Report');
   const body=encodeURIComponent('Report generated from PQRSTU. Please find the downloaded Excel attached.\n\nRegards,\nPQRSTU System');
-  window.location.href=mailto:${encodeURIComponent(to)}?subject=${subj}&body=${body};
+  window.location.href=`mailto:${encodeURIComponent(to)}?subject=${subj}&body=${body}`;
 }
 
 /* Prefill date */
