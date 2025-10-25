@@ -21,6 +21,7 @@
     padding:20px; display:flex; justify-content:center;
   }
   .wrap{ width:min(960px,100%) }
+
   .card{
     background:var(--card); border:1px solid var(--stroke);
     border-radius:16px; padding:18px; margin:18px 0;
@@ -29,6 +30,8 @@
   }
   @keyframes up{to{opacity:1; transform:none}}
   .muted{ color:var(--muted) }
+
+  /* Login */
   .loginbox{ max-width:480px; margin-inline:auto; text-align:center }
   .title{ font-weight:800; font-size:26px; margin:4px 0 }
   .subtitle{ color:var(--muted); margin:0 0 12px }
@@ -53,6 +56,8 @@
     </svg>");
     background-position:center; background-repeat:no-repeat; background-size:contain;
   }
+
+  /* Inputs */
   .grid{ display:grid; gap:16px; grid-template-columns: 1fr 1fr }
   @media (max-width:860px){ .grid{ grid-template-columns:1fr } }
   input,select{
@@ -67,7 +72,10 @@
     color:#fff; font-weight:800; cursor:pointer
   }
   .btn.alt{ background:linear-gradient(180deg, rgba(155,28,37,.45), rgba(155,28,37,.2)) }
+
   #scanner{ border-radius:12px; overflow:hidden; background:#0f1630; border:1px dashed rgba(255,255,255,.2) }
+
+  /* Success overlay */
   .success{ position:fixed; inset:0; background:rgba(5,20,5,.85); display:none; align-items:center; justify-content:center; z-index:9999 }
   .success > div{
     background:#0a7a33; border:2px solid #12d16a; color:#fff; padding:24px 28px; border-radius:16px;
@@ -130,7 +138,6 @@
   <!-- STEP 2: HOME -->
   <div id="homePanel" class="card" style="display:none">
     <h2 id="hi" style="margin:0 0 8px">Hi Student</h2>
-    <!-- Removed the GPS hint per your instruction -->
     <button class="btn" id="goMark" style="margin-top:12px; background:linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25))">
       Mark Your Attendance
     </button>
@@ -257,14 +264,12 @@ qs('microsoftBtn').onclick = async ()=>{
 async function onSignedIn(source){
   const u = auth.currentUser;
   qs('authMsg').textContent = `Signed in as ${u.email}`;
-  // audit login
   try{
     await db.collection('login_logs').add({
       uid:u.uid,email:u.email, ts_server:firebase.firestore.FieldValue.serverTimestamp(),
       lat:lastGeo?.lat||null, lng:lastGeo?.lng||null, acc_m:lastGeo?.acc_m||null, device_id:deviceId()
     });
   }catch(_){}
-  // check profile
   const doc = await db.collection('users').doc(u.uid).get();
   if(doc.exists){
     qs('hi').textContent = 'Hi ' + (doc.data().name||'Student');
@@ -297,7 +302,7 @@ qs('signupBtn').onclick = async ()=>{
   checkLiveSession();
 };
 
-/*** live session check — FIXED to status=='live' & no orderBy (no index needed) ***/
+/*** live session check — status=='live', no orderBy (no index needed) ***/
 let currentSlot=null;
 async function checkLiveSession(){
   qs('liveHint').textContent = 'Checking live attendance…';
@@ -326,28 +331,64 @@ async function checkLiveSession(){
   }
 }
 
-/*** QR scanning + attendance submit ***/
-let html5Qr = null, lastToken=null, parsed=null;
-qs('startScan').onclick = async ()=>{
-  if(html5Qr) return;
+/*** QR scanner — robust camera selection + clear errors ***/
+let html5Qr = null, lastToken = null, parsed = null;
+
+function setScanMsg(msg){ document.getElementById('scanMsg').textContent = msg; }
+
+function isVisible(el){
+  const r = el.getBoundingClientRect();
+  return !!(r.width && r.height && window.getComputedStyle(el).display !== 'none');
+}
+
+document.getElementById('startScan').onclick = async ()=>{
+  const box = document.getElementById('scanner');
+  if (html5Qr) { setScanMsg('Scanner already running'); return; }
+  if (!isVisible(box)) { setScanMsg('Scanner not visible. Open the attendance panel first.'); return; }
+
   html5Qr = new Html5Qrcode("scanner");
-  try{
+  setScanMsg('Requesting camera…');
+
+  try {
+    const cams = await Html5Qrcode.getCameras();
+    let camId = null;
+    if (cams && cams.length) {
+      const back = cams.find(c => /back|rear|environment/i.test(c.label));
+      camId = (back && back.id) || cams[cams.length - 1].id;
+    }
+    const cameraConfig = camId ? { deviceId: { exact: camId } } : { facingMode: { ideal: "environment" } };
+
     await html5Qr.start(
-      { facingMode:"environment" },
-      { fps:10, qrbox:{ width:260, height:260 } },
-      text=>{
+      cameraConfig,
+      { fps: 10, qrbox: { width: 260, height: 260 } },
+      (text) => {
         lastToken = text.trim();
         try{
-          const parts = lastToken.startsWith('att://') ? lastToken.split('.') : [null,lastToken];
-          const payload = atob(parts[1]); parsed = JSON.parse(payload);
-          qs('scanMsg').textContent = `Token OK · slot=${parsed.slot_id} · exp=${new Date(parsed.exp*1000).toLocaleTimeString()}`;
-        }catch(e){ parsed=null; qs('scanMsg').textContent = 'Invalid token'; }
-      }
+          const parts = lastToken.startsWith('att://') ? lastToken.split('.') : [null, lastToken];
+          const payload = atob(parts[1]);
+          parsed = JSON.parse(payload);
+          setScanMsg(`Token OK · slot=${parsed.slot_id} · exp=${new Date(parsed.exp * 1000).toLocaleTimeString()}`);
+        }catch(e){
+          parsed = null;
+          setScanMsg('Invalid token');
+        }
+      },
+      (_errMsg) => { /* per-frame decode failure: noisy; ignore */ }
     );
-  }catch(e){ qs('scanMsg').textContent = 'Camera error: '+e.message; }
+
+    setScanMsg('Camera started. Point to the live QR.');
+  } catch (e) {
+    setScanMsg(`Camera error: ${e?.message || e}. Check HTTPS & allow Camera permission for this site.`);
+    try { await html5Qr?.stop(); html5Qr?.clear(); } catch(_) {}
+    html5Qr = null;
+  }
 };
-qs('stopScan').onclick = async ()=>{
-  if(html5Qr){ await html5Qr.stop(); html5Qr.clear(); html5Qr=null; qs('scanMsg').textContent='Scanner stopped'; }
+
+document.getElementById('stopScan').onclick = async ()=>{
+  if (!html5Qr) { setScanMsg('Scanner is not running'); return; }
+  try { await html5Qr.stop(); html5Qr.clear(); setScanMsg('Scanner stopped'); }
+  catch(e){ setScanMsg('Stop error (ignored): ' + (e?.message||e)); }
+  finally { html5Qr = null; }
 };
 
 /*** Correct Haversine (meters) ***/
@@ -359,6 +400,7 @@ function distM(a,b){
   return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A));
 }
 
+/*** Submit attendance ***/
 qs('markBtn').onclick = async ()=>{
   const u = auth.currentUser; if(!u) return alert('Sign in first');
   const reg = qs('areg').value.trim(); const pass = qs('apass').value.trim();
@@ -381,7 +423,6 @@ qs('markBtn').onclick = async ()=>{
     device_id: deviceId(), token_id: parsed.token_id||null, method:'QR', result:'OK'
   });
 
-  // success overlay
   document.getElementById('successOverlay').style.display='flex';
   setTimeout(()=>{ document.getElementById('successOverlay').style.display='none'; }, 1800);
 };
