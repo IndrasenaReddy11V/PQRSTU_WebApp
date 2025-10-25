@@ -269,10 +269,10 @@ function initControlPanel(){
   $('startBtn').onclick=startSession;$('pauseBtn').onclick=pauseQR;$('resumeBtn').onclick=resumeQR;$('extendBtn').onclick=extendSession;$('endBtn').onclick=endSession;$('downloadBtn').onclick=downloadExcel;$('emailBtn').onclick=sendEmail;
 }
 
-/* QR token generation */
+/* Token building for QR */
 function makeToken(payload){
   const base64 = btoa(JSON.stringify(payload));
-  const sig = 'demo';
+  const sig = 'demo'; // prototype signature
   return `att://v1.${base64}.${sig}`;
 }
 function startQR(rotateSec,lifeSec){
@@ -294,54 +294,47 @@ async function startSession(){
   const u=auth.currentUser;if(!u)return alert('Sign in first');
   const course=$('course').value.trim();if(!course)return alert('Select course');
   const hours=Number($('hours').value||1),remarks=$('remarks').value.trim(),lat=Number($('lat').value),lng=Number($('lng').value),radius=Number($('radius').value||60),rotate=Number($('rotate').value||15),life=Number($('life').value||90),classId=$('classid').value.trim()||null;
-  const ref=await db.collection('slots').add({
-    course,hours,remarks,class_id:classId,created_by:u.uid,host_email:u.email,
-    start_ts:firebase.firestore.FieldValue.serverTimestamp(),
-    status:'live',qr_rotate_s:rotate,token_life_s:life,room_lat:lat,room_lng:lng,radius_m:radius
-  });
+  const ref=await db.collection('slots').add({course,hours,remarks,class_id:classId,created_by:u.uid,host_email:u.email,start_ts:firebase.firestore.FieldValue.serverTimestamp(),status:'live',qr_rotate_s:rotate,token_life_s:life,room_lat:lat,room_lng:lng,radius_m:radius});
   slotId=ref.id;$('sessMsg').textContent='Live session started · slot='+slotId;$('startBtn').disabled=true;enableSessionButtons(true);startQR(rotate,life);
 
+  // Live attendance table
   if(listenerAtt)listenerAtt();
-  listenerAtt=db.collection('checkins').where('slot_id','==',slotId).orderBy('ts_server','desc')
+  listenerAtt=db.collection('checkins').where('slot_id','==',slotId)
+    .orderBy('ts_server','desc')
     .onSnapshot(s=>{
-      attendanceRows=s.docs.map(d=>{const x=d.data(),t=x.ts_server?.toDate?.()||new Date();return{t,reg:x.reg_no||'—',name:x.name||'—',email:x.email||'—',status:x.result||'OK',acc:Math.round(x.acc_m||0),remarks:x.remarks||''}});
+      attendanceRows=s.docs.map(d=>{
+        const x=d.data(),t=x.ts_server?.toDate?.()||new Date();
+        return {t,reg:x.reg_no||'—',name:x.name||'—',email:x.email||'—',status:x.result||'OK',acc:Math.round(x.acc_m||0),remarks:x.remarks||''};
+      });
       renderAttendance();
     });
 
-  /* Real-time Raise Tokens — faculty & slot scoped (Option B) */
+  // Robust realtime token toasts + actionable list (filtered only by equality → fewer index issues)
   if(listenerRt)listenerRt();
   listenerRt = db.collection('raise_tokens')
-    .where('faculty_uid','==',u.uid)
     .where('slot_id','==',slotId)
     .where('state','==','open')
     .onSnapshot(snap=>{
-      // Toast on new tokens
       snap.docChanges().forEach(ch=>{
         if(ch.type==='added'){
           const x=ch.doc.data();
-          showToast(`<strong>New token</strong>
-            <div>${(x.student_name||'Student')} · ${x.reg_no||''}</div>
-            <div class="muted">${x.email||''}</div>
+          showToast(`<strong>New token raised</strong>
+            <div>${(x.name||x.email||'Unknown')}</div>
             <div class="muted">${x.reason||''}</div>`);
         }
       });
-      // Render list
-      const items=[];
-      snap.forEach(d=>{
+      const html = snap.docs.map(d=>{
         const x=d.data();
-        items.push(
-          `<div style="margin:8px 0;padding:10px;border:1px solid rgba(255,255,255,.14);border-radius:12px">
-             <div><strong>${x.student_name||'Student'} (${x.reg_no||'—'})</strong></div>
-             <div class="muted">${x.email||''}</div>
-             <div class="muted">${x.reason||''}</div>
-             <div style="margin-top:8px;display:flex;gap:8px">
-               <button class="btn green" onclick="resolveToken('${d.id}',true)">ACCEPT</button>
-               <button class="btn red" onclick="resolveToken('${d.id}',false)">DENY</button>
-             </div>
-           </div>`
-        );
-      });
-      $('tokens').innerHTML = items.length? items.join('') : 'No open tokens';
+        return `<div style="margin:8px 0;padding:10px;border:1px solid rgba(255,255,255,.14);border-radius:12px">
+          <div><strong>${x.reg_no||''} ${(x.name||'')}</strong> <span class="muted">(${x.email||''})</span></div>
+          <div class="muted">${x.reason||''}</div>
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <button class="btn green" onclick="resolveToken('${d.id}',true)">ACCEPT</button>
+            <button class="btn red" onclick="resolveToken('${d.id}',false)">REJECT</button>
+          </div>
+        </div>`;
+      }).join('');
+      $('tokens').innerHTML = html || 'No open tokens';
     });
 }
 
@@ -350,11 +343,10 @@ function resumeQR(){ startQR(Number($('rotate').value||15),Number($('life').valu
 async function extendSession(){ if(!slotId)return; await db.collection('slots').doc(slotId).update({extend_ts:firebase.firestore.FieldValue.serverTimestamp()}); $('sessMsg').textContent='Session extended by 3 minutes (marker logged)' }
 async function endSession(){
   if(qrTimer){clearInterval(qrTimer);qrTimer=null}
+  if(listenerAtt)listenerAtt(); if(listenerRt)listenerRt();
   if(slotId){await db.collection('slots').doc(slotId).update({status:'closed',end_ts:firebase.firestore.FieldValue.serverTimestamp()})}
   $('qr').innerHTML='';$('qrMsg').textContent='QR idle';$('sessMsg').textContent='Session ended.'
-  enableSessionButtons(false);$('startBtn').disabled=false;
-  if(listenerAtt)listenerAtt(); if(listenerRt)listenerRt();
-  slotId=null;
+  enableSessionButtons(false);$('startBtn').disabled=false; slotId=null;
 }
 
 function renderAttendance(){
@@ -363,31 +355,24 @@ function renderAttendance(){
   ).join('');
 }
 
-/* Accept / Deny token — also mark attendance on ACCEPT */
+/* Token resolution (notifies student listeners immediately) */
 window.resolveToken=async(id,accept)=>{
-  const u=auth.currentUser; if(!u) return;
-  const tokRef = db.collection('raise_tokens').doc(id);
-  const tok = await tokRef.get();
-  const t = tok.data() || {};
-  await tokRef.update({
-    state: accept ? 'accepted' : 'denied',
-    resolved_ts: firebase.firestore.FieldValue.serverTimestamp(),
-    last_update_ts: firebase.firestore.FieldValue.serverTimestamp()
+  await db.collection('raise_tokens').doc(id).update({
+    state:accept?'accepted':'denied',
+    resolved_ts:firebase.firestore.FieldValue.serverTimestamp()
   });
   if(accept && slotId){
+    const tok=await db.collection('raise_tokens').doc(id).get();
     await db.collection('checkins').add({
-      student_uid: t.student_uid||null,
-      email: t.email||'unknown@student',
-      reg_no: t.reg_no||null,
-      slot_id: slotId, class_id: null,
-      ts_client: new Date(),
-      ts_server: firebase.firestore.FieldValue.serverTimestamp(),
-      lat: null, lng: null, acc_m: null,
-      device_id: 'override', token_id: 'FAC_OVERRIDE',
-      method: 'FACULTY', result: 'OK', remarks: 'Faculty Override'
+      student_uid:tok.data()?.student_uid||null,
+      email:tok.data()?.email||'unknown@student',
+      reg_no:tok.data()?.reg_no||null,
+      slot_id:slotId,class_id:null,
+      ts_client:new Date(), ts_server:firebase.firestore.FieldValue.serverTimestamp(),
+      lat:null,lng:null,acc_m:null,device_id:'override',token_id:'FAC_OVERRIDE',
+      method:'FACULTY',result:'OK',remarks:'Faculty Override'
     });
   }
-  showToast(`<strong>Token ${accept?'accepted':'denied'}</strong><div>${t.student_name||'Student'} · ${t.reg_no||''}</div>`, 2500);
 };
 
 /* Excel export */
