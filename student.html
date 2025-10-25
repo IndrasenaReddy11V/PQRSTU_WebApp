@@ -7,11 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg1:#0b1220; --bg2:#141b2e; --text:#eaf0ff; --muted:#b8c0d9;
-    --stroke:rgba(255,255,255,.12); --card:rgba(16,23,41,.62);
-    --green:#16a34a; --green2:#22c55e; --red:#ef4444; --red2:#f87171;
-  }
+  :root{--bg1:#0b1220;--bg2:#141b2e;--text:#eaf0ff;--muted:#b8c0d9;--stroke:rgba(255,255,255,.12);--card:rgba(16,23,41,.62);--green:#16a34a;--red:#ef4444}
   *{box-sizing:border-box} html,body{height:100%}
   body{
     margin:0; font-family:Inter,system-ui,Arial,Segoe UI,sans-serif; color:var(--text);
@@ -54,40 +50,22 @@
     </svg>");
     background-position:center; background-repeat:no-repeat; background-size:contain;
   }
-
-  .grid{ display:grid; gap:16px; grid-template-columns:1fr 1fr }
-  @media (max-width:860px){ .grid{ grid-template-columns:1fr } }
+  .grid{ display:grid; gap:16px; grid-template-columns:1fr 1fr } @media (max-width:860px){ .grid{ grid-template-columns:1fr } }
   input,button,select{ font-family:inherit; font-size:15px }
-  input,select{
-    width:100%; padding:12px; border-radius:10px; border:1px solid #304;
-    background:#0f1630; color:#eaf0ff
-  }
+  input,select{ width:100%; padding:12px; border-radius:10px; border:1px solid #304; background:#0f1630; color:#eaf0ff }
   label{ font-size:13px; color:var(--muted); display:block; margin-bottom:6px }
-  .btn{
-    width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
-    background:linear-gradient(180deg, rgba(61,109,242,.3), rgba(61,109,242,.15));
-    color:#fff; font-weight:800; cursor:pointer
-  }
+  .btn{ width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18); color:#fff; font-weight:800; cursor:pointer }
   .btn.green{ background:linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28)) }
-  .btn.red{ background:linear-gradient(180deg, rgba(239,68,68,.55), rgba(239,68,68,.28)) }
   .btn.dark{ background:linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25)) }
+  .btn.red{ background:linear-gradient(180deg, rgba(239,68,68,.55), rgba(239,68,68,.28)) }
   .row{ display:grid; grid-template-columns:1fr auto; gap:10px }
-
   #scanner{ border-radius:12px; overflow:hidden; background:#0f1630; border:1px dashed rgba(255,255,255,.2) }
-
-  /* Overlays */
   .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999; }
-  .okbg{ background:rgba(5,20,5,.85) }
-  .errbg{ background:rgba(30,5,5,.85) }
-  .panel{
-    background:#0a7a33; border:2px solid #12d16a; color:#fff; padding:26px 30px; border-radius:18px;
-    font-size:20px; font-weight:800; box-shadow:0 24px 80px rgba(0,0,0,.5); text-align:center; animation:pop .45s ease;
-  }
+  .okbg{ background:rgba(5,20,5,.85) } .errbg{ background:rgba(30,5,5,.85) }
+  .panel{ background:#0a7a33; border:2px solid #12d16a; color:#fff; padding:26px 30px; border-radius:18px; font-size:20px; font-weight:800; box-shadow:0 24px 80px rgba(0,0,0,.5); text-align:center; animation:pop .45s ease; }
   .panel.red{ background:#7a0a0a; border-color:#ff6969 }
   .bigcheck{ font-size:64px; line-height:1; display:block; margin-bottom:8px }
   @keyframes pop{ from{transform:scale(.92); opacity:0} to{transform:scale(1); opacity:1} }
-
-  /* Toasts for token resolution */
   #toast{position:fixed;right:18px;bottom:18px;z-index:99999;display:flex;flex-direction:column;gap:10px}
   .toast{background:rgba(16,23,41,.92);border:1px solid rgba(255,255,255,.12);color:#eaf0ff;padding:12px 14px;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.35);max-width:360px;animation:toastIn .25s ease}
   .toast strong{display:block;margin-bottom:6px}
@@ -99,7 +77,7 @@
 
 <div class="wrap">
 
-  <!-- STEP 0: LOGIN -->
+  <!-- LOGIN -->
   <div id="authPanel" class="card loginbox">
     <div class="title">Welcome to PQRSTU</div>
     <div class="subtitle">Log in to your account and mark your attendance</div>
@@ -110,7 +88,7 @@
     <div id="authMsg" class="muted" style="margin-top:12px">Not signed in</div>
   </div>
 
-  <!-- STEP 1: PROFILE (first time) -->
+  <!-- PROFILE (first time) -->
   <div id="signupPanel" class="card" style="display:none">
     <h2>Complete your profile (one-time)</h2>
     <div class="grid">
@@ -125,15 +103,15 @@
     <div id="signupMsg" class="muted" style="margin-top:8px"></div>
   </div>
 
-  <!-- STEP 2: HOME -->
+  <!-- HOME -->
   <div id="homePanel" class="card" style="display:none">
     <h2 id="hi" style="margin:0 0 8px">Hi Student</h2>
     <div class="muted">Keep your GPS on when you scan.</div>
     <button class="btn green" id="goMark" style="margin-top:12px">Mark your Attendance</button>
-    <div id="liveHint" class="muted" style="margin-top:6px"></div>
+    <div id="liveHint" class="muted" style="margin-top:6px">Checking live session…</div>
   </div>
 
-  <!-- STEP 3: ATTENDANCE PAGE (no auto camera) -->
+  <!-- ATTENDANCE (no auto camera) -->
   <div id="attPanel" class="card" style="display:none">
     <h2>Attendance · Verify</h2>
     <div class="grid">
@@ -174,12 +152,12 @@
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
-/* ================= Firebase ================= */
+/* Firebase */
 const firebaseConfig={apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",authDomain:"project-qr-eceae.firebaseapp.com",projectId:"project-qr-eceae",storageBucket:"project-qr-eceae.firebasestorage.app",messagingSenderId:"527248340371",appId:"1:527248340371:web:870ca9bed83372e390e466"};
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore();
 
-/* ================= Helpers ================= */
+/* Helpers */
 const qs=id=>document.getElementById(id), show=(id,on=true)=>qs(id).style.display=on?'block':'none';
 function deviceId(){const k='pqr_device';let v=localStorage.getItem(k);if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}return v;}
 function showToast(html,ms=3500){const box=document.getElementById('toast');const t=document.createElement('div');t.className='toast';t.innerHTML=html;box.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .2s';setTimeout(()=>t.remove(),220)},ms)}
@@ -187,34 +165,32 @@ let lastGeo=null;
 async function captureGeoSilently(){try{const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:12000}));lastGeo={lat:p.coords.latitude,lng:p.coords.longitude,acc_m:p.coords.accuracy}}catch(_){/* ignore */}}
 function distM(a,b){const toR=x=>x*Math.PI/180,R=6371000;const dLat=toR(b.lat-a.lat),dLng=toR(b.lng-a.lng);const A=Math.sin(dLat/2)**2+Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A));}
 
-/* ================= Auth (popup→redirect) ================= */
-async function providerSignIn(p){
-  p.setCustomParameters({prompt:'select_account'});
-  try{return await auth.signInWithPopup(p)}catch(e){
-    if(e.code&&e.code.includes('popup')){await auth.signInWithRedirect(p);return null}else throw e;
-  }
-}
-qs('googleBtn').onclick=async()=>{await captureGeoSilently();const gp=new firebase.auth.GoogleAuthProvider();const r=await providerSignIn(gp);if(r&&r.user)onLogin()};
-qs('microsoftBtn').onclick=async()=>{await captureGeoSilently();const ms=new firebase.auth.OAuthProvider('microsoft.com');ms.addScope('openid');ms.addScope('profile');ms.addScope('email');const r=await providerSignIn(ms);if(r&&r.user)onLogin()};
+/* Auth */
+async function providerSignIn(p){p.setCustomParameters({prompt:'select_account'});try{return await auth.signInWithPopup(p)}catch(e){if(e.code&&e.code.includes('popup')){await auth.signInWithRedirect(p);return null}else throw e}}
+qs('googleBtn').onclick=async()=>{await captureGeoSilently();const gp=new firebase.auth.GoogleAuthProvider();const r=await providerSignIn(gp);if(r&&r.user)onLogin()}
+qs('microsoftBtn').onclick=async()=>{await captureGeoSilently();const ms=new firebase.auth.OAuthProvider('microsoft.com');ms.addScope('openid');ms.addScope('profile');ms.addScope('email');const r=await providerSignIn(ms);if(r&&r.user)onLogin()}
 
-/* ================= Session state ================= */
-let currentSlot=null, html5Qr=null, parsed=null, lastToken=null, myProfile=null;
-let tokenListenerStop=null; // will be attached AFTER raising token
+let currentSlot=null, html5Qr=null, parsed=null, lastToken=null, myProfile=null, tokenListenerStop=null;
 
 async function onLogin(){
   const u=auth.currentUser; qs('authMsg').textContent='Signed in as '+u.email;
   const doc=await db.collection('users').doc(u.uid).get();
   if(doc.exists){
-    myProfile=doc.data();
-    qs('hi').textContent='Hi '+(myProfile.name||'Student');
+    myProfile=doc.data(); qs('hi').textContent='Hi '+(myProfile.name||'Student');
     show('authPanel',false); show('homePanel',true);
-    checkLive();
+    // Button always works, even if no live slot (will warn later)
+    document.getElementById('goMark').onclick=()=>{
+      show('homePanel',false); show('attPanel',true);
+      qs('areg').value=myProfile?.reg_no||''; qs('apass').value='';
+      qs('scanMsg').textContent='Scanner idle';
+    };
+    checkLive(); // update hint + slot info
   }else{
     show('authPanel',false); show('signupPanel',true);
   }
 }
 
-/* ================= Profile save ================= */
+/* Profile save */
 function validReg(s){return /^[0-9]{7}[A-Z]{3}$/.test(s)}
 function validDob(s){return /^(0[1-9]|[12][0-9]|3[01])[A-Z][a-z]{2}[0-9]{4}$/.test(s)}
 qs('signupBtn').onclick=async()=>{
@@ -223,70 +199,48 @@ qs('signupBtn').onclick=async()=>{
   if(!name||!dept||!reg||!dob) return qs('signupMsg').textContent='All fields mandatory';
   if(!validReg(reg)) return qs('signupMsg').textContent='Invalid Reg No (e.g., 2400249MBS)';
   if(!validDob(dob)) return qs('signupMsg').textContent='Invalid DOB (e.g., 27Aug2002)';
-  await db.collection('users').doc(u.uid).set({
-    uid:u.uid,email:u.email,name,department:dept,reg_no:reg,dob,
-    device_id:deviceId(),created_at:firebase.firestore.FieldValue.serverTimestamp(),role:'student'
-  });
+  await db.collection('users').doc(u.uid).set({uid:u.uid,email:u.email,name,department:dept,reg_no:reg,dob,device_id:deviceId(),created_at:firebase.firestore.FieldValue.serverTimestamp(),role:'student'});
   myProfile={name,department:dept,reg_no:reg,dob};
   qs('hi').textContent='Hi '+name; show('signupPanel',false); show('homePanel',true); checkLive();
 };
 
-/* ================= Live slot check ================= */
+/* Live slot check (no orderBy → no composite index needed) */
 async function checkLive(){
   qs('liveHint').textContent='Checking live session…';
-  const s=await db.collection('slots').where('status','==','live').orderBy('start_ts','desc').limit(1).get();
-  if(s.empty){
-    qs('liveHint').textContent='No attendance is live now.';
-    qs('goMark').onclick=()=>alert('No attendance is on live now!');
-  }else{
-    currentSlot={id:s.docs[0].id,...s.docs[0].data()};
-    qs('liveHint').textContent='Attendance is live now.';
-    qs('goMark').onclick=()=>{
-      show('homePanel',false); show('attPanel',true);
-      // Autofill from profile
-      qs('areg').value=myProfile?.reg_no||'';
-      qs('apass').value='';
-      // Ensure camera is idle until button press
-      qs('scanMsg').textContent='Scanner idle';
-    };
-  }
+  try{
+    const s=await db.collection('slots').where('status','==','live').limit(1).get();
+    if(s.empty){ qs('liveHint').textContent='No attendance is live now.'; currentSlot=null; }
+    else{ currentSlot={id:s.docs[0].id,...s.docs[0].data()}; qs('liveHint').textContent='Attendance is live now.'; }
+  }catch(e){ qs('liveHint').textContent='Could not check live session.'; }
 }
 
-/* ================= Scanner (manual start) ================= */
+/* Scanner (manual) */
 function setScanMsg(m){qs('scanMsg').textContent=m}
 qs('startScan').onclick=async()=>{
+  if(!currentSlot){ alert('No live session right now. You can still raise a token.'); return; }
   if(typeof Html5Qrcode==='undefined'){ setScanMsg('❌ QR library not loaded!'); return; }
   try{
     if(html5Qr){ try{await html5Qr.stop()}catch(_){ } html5Qr.clear(); }
-    // Ask for camera permission now (user gesture)
     html5Qr = new Html5Qrcode("scanner",{ verbose:false });
     const cams = await Html5Qrcode.getCameras();
     if(!cams.length){ setScanMsg('No cameras found'); return; }
     const backCam = cams.find(c=>/back|rear|environment/i.test(c.label)) || cams[0];
-
     await html5Qr.start(
       { deviceId:{ exact: backCam.id } },
       { fps:16, qrbox:320, aspectRatio:1.0 },
       async (decodedText)=>{
         if(!decodedText.startsWith('att://v1.')) return;
         try{
-          lastToken=decodedText.trim();
-          const base=lastToken.split('.')[1];
-          parsed=JSON.parse(atob(base));  // {slot_id,exp,token_id,...}
-          setScanMsg('QR read. Validating…');
-          await markAttendance(); // validate+submit
+          lastToken=decodedText.trim(); const base=lastToken.split('.')[1]; parsed=JSON.parse(atob(base));
+          setScanMsg('QR read. Validating…'); await markAttendance();
         }catch(e){ setScanMsg('Invalid QR format'); }
-      },
-      (_)=>{}
-    );
-    setScanMsg('Camera active — hold QR inside the box');
+      }, (_)=>{}
+    ); setScanMsg('Camera active — hold QR inside the box');
   }catch(e){ setScanMsg('Camera error: '+(e.message||e)); }
 };
-qs('stopScan').onclick=async()=>{
-  if(html5Qr){ await html5Qr.stop(); html5Qr.clear(); html5Qr=null; setScanMsg('Scanner stopped'); }
-};
+qs('stopScan').onclick=async()=>{ if(html5Qr){ await html5Qr.stop(); html5Qr.clear(); html5Qr=null; setScanMsg('Scanner stopped'); } };
 
-/* ================= Mark Attendance ================= */
+/* Mark Attendance */
 async function markAttendance(){
   const u=auth.currentUser; if(!u){ showFail("Please sign in first."); return; }
   const reg=qs('areg').value.trim(), pass=qs('apass').value.trim();
@@ -294,84 +248,55 @@ async function markAttendance(){
   if(!validDob(pass)){ showFail('Password (DOB) format invalid'); return; }
   if(!parsed){ showFail('Scan the live QR first'); return; }
   if(!currentSlot || parsed.slot_id !== currentSlot.id){ showFail('This QR is not for the active session'); return; }
-
-  // profile match
   if(myProfile && (myProfile.reg_no!==reg || myProfile.dob!==pass)){ showFail('Profile Reg. No / DOB do not match.'); return; }
 
-  // duplicate check: one student or one device per slot
-  const dup = await db.collection('checkins')
-    .where('slot_id','==',currentSlot.id)
-    .where('student_uid','==',u.uid).limit(1).get();
-  if(!dup.empty){ showSuccess(); return; } // already marked
+  const dup = await db.collection('checkins').where('slot_id','==',currentSlot.id).where('student_uid','==',u.uid).limit(1).get();
+  if(!dup.empty){ showSuccess(); if(html5Qr){try{await html5Qr.stop()}catch(_){ } html5Qr.clear(); html5Qr=null; setScanMsg('Scanner stopped'); } return; }
 
-  const dupDev = await db.collection('checkins')
-    .where('slot_id','==',currentSlot.id)
-    .where('device_id','==',deviceId()).limit(1).get();
+  const dupDev = await db.collection('checkins').where('slot_id','==',currentSlot.id).where('device_id','==',deviceId()).limit(1).get();
   if(!dupDev.empty){ showFail('Attendance already marked from this device.'); return; }
 
-  // geo fence
   await captureGeoSilently();
   if(currentSlot.room_lat && currentSlot.room_lng){
     const d=distM({lat:lastGeo?.lat||0,lng:lastGeo?.lng||0},{lat:currentSlot.room_lat,lng:currentSlot.room_lng});
     if(!lastGeo || d > (currentSlot.radius_m||60)){ showFail("You're not in classroom range."); return; }
   }
 
-  // write
   await db.collection('checkins').add({
-    student_uid:u.uid,email:u.email,reg_no:reg,
-    slot_id:currentSlot.id,class_id:currentSlot.class_id||null,
+    student_uid:u.uid,email:u.email,reg_no:reg,slot_id:currentSlot.id,class_id:currentSlot.class_id||null,
     ts_client:new Date(), ts_server:firebase.firestore.FieldValue.serverTimestamp(),
     lat:lastGeo?.lat||null,lng:lastGeo?.lng||null,acc_m:lastGeo?.acc_m||null,
     device_id:deviceId(),token_id:parsed.token_id||null,method:'QR',result:'OK'
   });
 
   showSuccess();
-  // stop camera after success
   if(html5Qr){ try{await html5Qr.stop()}catch(_){ } html5Qr.clear(); html5Qr=null; setScanMsg('Scanner stopped'); }
 }
 
-/* ================ Success / Fail overlays =============== */
-function showSuccess(){
-  const ov=qs('okOverlay'); ov.style.display='flex';
-  setTimeout(()=>{ ov.style.display='none'; }, 2000);
-}
-function showFail(msg){
-  qs('errText').innerHTML = `❌ ${msg || 'Attendance marking failed!'}<br/><small class="muted">You can use “Raise Token” below to contact faculty.</small>`;
-  const ov=qs('errOverlay'); ov.style.display='flex';
-  setTimeout(()=>{ ov.style.display='none'; }, 2600);
-}
+/* Overlays */
+function showSuccess(){ const ov=qs('okOverlay'); ov.style.display='flex'; setTimeout(()=>{ ov.style.display='none'; }, 2000); }
+function showFail(msg){ qs('errText').innerHTML=`❌ ${msg||'Attendance marking failed!'}`; const ov=qs('errOverlay'); ov.style.display='flex'; setTimeout(()=>{ ov.style.display='none'; }, 2600); }
 
-/* ================= Raise Token (faculty-scoped) ================ */
+/* Raise Token */
 qs('raiseBtn').onclick=async()=>{
   const u=auth.currentUser;if(!u) return alert('Sign in first');
   const reason=qs('rtReason').value.trim(); if(!reason) return alert('Reason is mandatory');
-
-  // include profile + faculty_uid from current slot
-  const reg_no = myProfile?.reg_no||null;
-  const student_name = myProfile?.name||null;
-  const slot_id = currentSlot?.id || parsed?.slot_id || null;
-  const faculty_uid = currentSlot?.created_by || null;
-
-  const ref = await db.collection('raise_tokens').add({
-    student_uid:u.uid, email:u.email, student_name, reg_no,
-    reason, state:'open',
-    slot_id, faculty_uid,
-    created_ts: firebase.firestore.FieldValue.serverTimestamp(),
-    last_update_ts: firebase.firestore.FieldValue.serverTimestamp()
+  const reg_no = myProfile?.reg_no||null, student_name=myProfile?.name||null, slot_id=currentSlot?.id||parsed?.slot_id||null, faculty_uid=currentSlot?.created_by||null;
+  const ref=await db.collection('raise_tokens').add({
+    student_uid:u.uid,email:u.email,student_name,reg_no,reason,state:'open',slot_id,faculty_uid,
+    created_ts:firebase.firestore.FieldValue.serverTimestamp(),last_update_ts:firebase.firestore.FieldValue.serverTimestamp()
   });
   qs('rtMsg').textContent='Token raised. Faculty notified.';
 
-  // Start a listener ONLY for this token, and only show when resolved.
-  if(tokenListenerStop) tokenListenerStop();
-  tokenListenerStop = db.collection('raise_tokens').doc(ref.id)
-    .onSnapshot(d=>{
-      const x=d.data(); if(!x) return;
-      if(x.state==='accepted'){ showToast('<strong>✅ Approved</strong><div>Your attendance has been approved by faculty.</div>'); if(tokenListenerStop){tokenListenerStop(); tokenListenerStop=null;} }
-      if(x.state==='denied'){ showToast('<strong>❌ Denied</strong><div>Sorry! Try again later.</div>'); if(tokenListenerStop){tokenListenerStop(); tokenListenerStop=null;} }
-    });
+  // listen for this token only
+  ref && db.collection('raise_tokens').doc(ref.id).onSnapshot(d=>{
+    const x=d.data(); if(!x) return;
+    if(x.state==='accepted'){ showToast('<strong>✅ Approved</strong><div>Your attendance has been approved by faculty.</div>'); }
+    if(x.state==='denied'){ showToast('<strong>❌ Denied</strong><div>Sorry! Try again later.</div>'); }
+  });
 };
 
-/* ================ Bootstrap ================ */
+/* boot */
 captureGeoSilently();
 </script>
 </body>
