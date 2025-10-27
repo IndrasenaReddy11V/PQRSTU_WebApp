@@ -297,81 +297,109 @@ function nowSec(){return Math.floor(Date.now()/1000)}
 
 /* Process scanned URL */
 async function processScannedUrl(url){
+  console.log('Processing URL:', url);
   setScanMsg('Verifying token...');
   try{
     // Parse URL parameters
     const urlObj = new URL(url);
+    console.log('Parsed URL:', urlObj.href);
     const base = urlObj.searchParams.get('token');
     const sig = urlObj.searchParams.get('sig');
+    console.log('Token:', base ? 'Found' : 'Missing', 'Signature:', sig ? 'Found' : 'Missing');
     
     if(!base || !sig){
+      console.error('Missing token or signature');
       showFail('Invalid QR code - Missing token or signature');
+      setScanMsg('❌ Invalid QR code');
       return;
     }
 
     // Decode payload
     const payload = JSON.parse(atob(base));
+    console.log('Payload decoded:', payload);
     if(!payload){
+      console.error('Could not decode payload');
       showFail('Invalid QR code - Could not decode token');
+      setScanMsg('❌ Decode failed');
       return;
     }
 
     // Check expiry
     const now = nowSec();
+    console.log('Time check - Now:', now, 'Expires:', payload.exp, 'Valid:', now <= payload.exp);
     if(now > payload.exp){
       showFail('QR code expired - Please scan the latest one');
+      setScanMsg('❌ QR expired');
       return;
     }
 
     // Check version
     if(payload.ver !== 1){
+      console.error('Invalid version:', payload.ver);
       showFail('Invalid QR version');
+      setScanMsg('❌ Invalid version');
       return;
     }
 
     // Get slot details
+    console.log('Fetching slot:', payload.slot_id);
     const slotDoc = await db.collection('slots').doc(payload.slot_id).get();
     if(!slotDoc.exists){
+      console.error('Slot not found');
       showFail('Session not found');
+      setScanMsg('❌ Session not found');
       return;
     }
 
     const slotData = slotDoc.data();
+    console.log('Slot status:', slotData.status);
     
     // Check if session is still live
     if(slotData.status !== 'live'){
       showFail('Session ended');
+      setScanMsg('❌ Session ended');
       return;
     }
 
     // Verify signature using slot's kv_key
     const kvKey = slotData.kv_key;
     if(!kvKey){
+      console.error('Missing kv_key');
       showFail('Configuration error - Session key not found');
+      setScanMsg('❌ Config error');
       return;
     }
 
+    console.log('Verifying signature...');
     const hmacKey = await importKeyHex(kvKey);
     const expectedSig = await hmacHex(hmacKey, base);
+    console.log('Signature match:', expectedSig.toLowerCase() === sig.toLowerCase());
     
     if(expectedSig.toLowerCase() !== sig.toLowerCase()){
+      console.error('Signature mismatch');
       showFail('Invalid signature - QR verification failed');
+      setScanMsg('❌ Invalid signature');
       return;
     }
 
     // User must be signed in
     const user = auth.currentUser;
     if(!user){
+      console.error('User not signed in');
       showFail('Please sign in first');
+      setScanMsg('❌ Not signed in');
       return;
     }
 
     // Get user profile
     if(!myProfile){
+      console.error('Profile not found');
       showFail('Profile not found - Please complete your profile first');
+      setScanMsg('❌ No profile');
       return;
     }
 
+    console.log('Checking duplicates...');
     // Check for duplicate attendance
     const dupCheck = await db.collection('checkins')
       .where('slot_id','==',payload.slot_id)
@@ -380,7 +408,9 @@ async function processScannedUrl(url){
       .get();
     
     if(!dupCheck.empty){
+      console.log('Already marked');
       showSuccess();
+      setScanMsg('✅ Already marked');
       return;
     }
 
@@ -392,10 +422,13 @@ async function processScannedUrl(url){
       .get();
     
     if(!dupDevCheck.empty){
+      console.error('Device duplicate');
       showFail('Already marked from this device');
+      setScanMsg('❌ Device duplicate');
       return;
     }
 
+    console.log('Checking geofence...');
     // Geo fence check
     await captureGeoSilently();
     if(slotData.room_lat && slotData.room_lng && lastGeo){
@@ -403,12 +436,15 @@ async function processScannedUrl(url){
         {lat:slotData.room_lat, lng:slotData.room_lng},
         {lat:lastGeo.lat, lng:lastGeo.lng}
       );
+      console.log('Distance from classroom:', Math.round(dist), 'm');
       if(dist > (slotData.radius_m || 60)){
         showFail(`You are ${Math.round(dist)}m away. Please be within ${slotData.radius_m}m of classroom`);
+        setScanMsg(`❌ Too far (${Math.round(dist)}m)`);
         return;
       }
     }
 
+    console.log('Marking attendance...');
     // Mark attendance
     await db.collection('checkins').add({
       student_uid: user.uid,
@@ -430,8 +466,9 @@ async function processScannedUrl(url){
       remarks: 'Scanned via camera'
     });
 
+    console.log('Attendance marked successfully!');
     showSuccess();
-    setScanMsg('Attendance marked successfully!');
+    setScanMsg('✅ Attendance marked successfully!');
 
   }catch(e){
     console.error('Verification error:', e);
@@ -468,19 +505,34 @@ qs('startScan').onclick=async()=>{
         disableFlip: false
       },
       async (decodedText)=>{
-        // Handle URL-based QR codes
-        if(decodedText.includes('verify.html?token=')){
-          setScanMsg('QR detected. Processing...');
+        console.log('QR Scanned:', decodedText);
+        
+        // Stop scanner immediately to prevent multiple scans
+        if(html5Qr){
           try{
             await html5Qr.stop();
             html5Qr.clear();
             html5Qr = null;
-            await processScannedUrl(decodedText);
           }catch(e){
+            console.error('Error stopping scanner:', e);
+          }
+        }
+        
+        // Handle URL-based QR codes
+        if(decodedText.includes('verify.html?token=') || decodedText.includes('verify.html%3Ftoken=')){
+          setScanMsg('QR detected. Processing...');
+          try{
+            // Decode URL if needed
+            const url = decodedText.includes('%3F') ? decodeURIComponent(decodedText) : decodedText;
+            await processScannedUrl(url);
+          }catch(e){
+            console.error('Processing error:', e);
             setScanMsg('Processing error: ' + e.message);
+            showFail('Error: ' + e.message);
           }
           return;
         }
+        
         // Legacy format support
         if(decodedText.startsWith('att://v1.')){
           try{
@@ -491,7 +543,13 @@ qs('startScan').onclick=async()=>{
             const ok = await verifyKVSignature(parsed, tokenBase);
             if(!ok){ setScanMsg('❌ Invalid or expired QR'); showFail('QR signature check failed.'); return; }
             await markAttendance();
-          }catch(e){ setScanMsg('Invalid QR format'); }
+          }catch(e){ 
+            console.error('Legacy QR error:', e);
+            setScanMsg('Invalid QR format'); 
+          }
+        }else{
+          setScanMsg('❌ Unrecognized QR format');
+          showFail('Please scan a valid attendance QR code');
         }
       }, (_)=>{}
     ); setScanMsg('Camera active — hold QR inside the box');
