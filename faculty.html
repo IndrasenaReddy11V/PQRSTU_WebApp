@@ -288,7 +288,8 @@ async function drawQR(){
   const payload = makeTokenPayload();
   const base = pack(payload);
   const sigHex = await hmacHex(hmacKey, base); // sign base64 with per-slot secret
-  const attUrl = `att://v1.${base}.${sigHex}`;
+  // const attUrl = `att://v1.${base}.${sigHex}`;
+  const attUrl = "https://www.google.com";
   const holder=$('qr'); holder.innerHTML='';
   new QRCode(holder,{text:attUrl,width:280,height:280,correctLevel:QRCode.CorrectLevel.M});
   $('qrMsg').textContent=`QR refreshed · HS256 signature · expires in ${payload.exp - nowSec()}s`;
