@@ -204,6 +204,20 @@ function distM(a,b){const toR=x=>x*Math.PI/180,R=6371000;const dLat=toR(b.lat-a.
 
 /* Auth */
 async function providerSignIn(p){p.setCustomParameters({prompt:'select_account'});try{return await auth.signInWithPopup(p)}catch(e){if(e.code&&e.code.includes('popup')){await auth.signInWithRedirect(p);return null}else throw e}}
+
+// Handle redirect result on page load
+async function handleRedirectResult(){
+  try{
+    const result = await auth.getRedirectResult();
+    if(result && result.user){
+      onLogin();
+    }
+  }catch(e){
+    console.error('Redirect error:', e);
+  }
+}
+handleRedirectResult();
+
 qs('googleBtn').onclick=async()=>{await captureGeoSilently();const gp=new firebase.auth.GoogleAuthProvider();const r=await providerSignIn(gp);if(r&&r.user)onLogin()}
 qs('microsoftBtn').onclick=async()=>{await captureGeoSilently();const ms=new firebase.auth.OAuthProvider('microsoft.com');ms.addScope('openid');ms.addScope('profile');ms.addScope('email');const r=await providerSignIn(ms);if(r&&r.user)onLogin()}
 
@@ -211,9 +225,21 @@ let currentSlot=null, html5Qr=null, parsed=null, tokenBase=null, tokenSig=null, 
 
 async function onLogin(){
   const u=auth.currentUser; qs('authMsg').textContent='Signed in as '+u.email;
+  
+  // Check if there's a redirect URL (from verify.html)
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectUrl = urlParams.get('redirect');
+  
   const doc=await db.collection('users').doc(u.uid).get();
   if(doc.exists){
     myProfile=doc.data(); qs('hi').textContent='Hi '+(myProfile.name||'Student');
+    
+    // If there's a redirect URL, go there after profile check
+    if(redirectUrl){
+      window.location.href = decodeURIComponent(redirectUrl);
+      return;
+    }
+    
     show('authPanel',false); show('homePanel',true);
     document.getElementById('goMark').onclick=()=>{
       show('homePanel',false); show('attPanel',true);

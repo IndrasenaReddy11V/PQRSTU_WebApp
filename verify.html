@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Verify Attendance · PQRSTU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#0a0f1f;--bg2:#0e1530;--ink:#eaf0ff;--muted:#b9c3df;
+    --green:#16a34a;--red:#ef4444;--blue:#3b82f6;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Inter,system-ui,Arial,Segoe UI,sans-serif; color:var(--ink);
+    background:linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .overlay{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:9999;
+  }
+  .okbg{ background:rgba(5,20,5,.92) }
+  .errbg{ background:rgba(30,5,5,.92) }
+  .panel{
+    background:#0a7a33; border:2px solid #12d16a; color:#fff;
+    padding:40px 50px; border-radius:20px; font-size:22px; font-weight:800;
+    box-shadow:0 24px 80px rgba(0,0,0,.6); text-align:center;
+    animation:pop .5s ease; max-width:500px;
+  }
+  .panel.red{ background:#7a0a0a; border-color:#ff6969 }
+  .bigcheck{ font-size:80px; line-height:1; display:block; margin-bottom:12px }
+  @keyframes pop{ from{transform:scale(.9); opacity:0} to{transform:scale(1); opacity:1} }
+  .spinner{
+    width:60px; height:60px; border:6px solid rgba(255,255,255,.2);
+    border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite;
+  }
+  @keyframes spin{ to{transform:rotate(360deg)} }
+  .loading{
+    background:rgba(16,23,41,.95); padding:40px;
+    border-radius:20px; text-align:center;
+  }
+  .detail{
+    font-size:16px; font-weight:400; margin-top:16px; opacity:.85; line-height:1.6;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <div style="margin-top:20px; font-size:18px; font-weight:600;">Verifying your attendance...</div>
+  <div style="margin-top:8px; color:var(--muted); font-size:14px;">Please wait</div>
+</div>
+
+<div id="successOverlay" class="overlay okbg" style="display:none">
+  <div class="panel">
+    <span class="bigcheck">✅</span>
+    <div>Congrats! Your attendance has been marked successfully!</div>
+    <div class="detail" id="successDetail"></div>
+  </div>
+</div>
+
+<div id="errorOverlay" class="overlay errbg" style="display:none">
+  <div class="panel red">
+    <span class="bigcheck">❌</span>
+    <div id="errorText">Sorry, Try again or Raise Token</div>
+    <div class="detail" id="errorDetail"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* Firebase */
+const firebaseConfig={apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",authDomain:"project-qr-eceae.firebaseapp.com",projectId:"project-qr-eceae",storageBucket:"project-qr-eceae.firebasestorage.app",messagingSenderId:"527248340371",appId:"1:527248340371:web:870ca9bed83372e390e466"};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+const $=id=>document.getElementById(id);
+
+function showSuccess(msg='', detail=''){
+  $('loading').style.display='none';
+  if(msg) $('successOverlay').querySelector('.panel > div:nth-child(2)').textContent = msg;
+  if(detail) $('successDetail').textContent = detail;
+  $('successOverlay').style.display='flex';
+}
+
+function showError(msg='Sorry, Try again or Raise Token', detail=''){
+  $('loading').style.display='none';
+  $('errorText').textContent = msg;
+  if(detail) $('errorDetail').textContent = detail;
+  $('errorOverlay').style.display='flex';
+}
+
+function deviceId(){
+  const k='pqr_device';
+  let v=localStorage.getItem(k);
+  if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}
+  return v;
+}
+
+function nowSec(){return Math.floor(Date.now()/1000)}
+
+async function captureGeoSilently(){
+  try{
+    const p=await new Promise((res,rej)=>
+      navigator.geolocation.getCurrentPosition(res,rej,{
+        enableHighAccuracy:true,timeout:12000
+      })
+    );
+    return {lat:p.coords.latitude,lng:p.coords.longitude,acc_m:p.coords.accuracy};
+  }catch(e){
+    return null;
+  }
+}
+
+function distM(a,b){
+  const toR=x=>x*Math.PI/180, R=6371000;
+  const dLat=toR(b.lat-a.lat), dLng=toR(b.lng-a.lng);
+  const A=Math.sin(dLat/2)**2+Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;
+  return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A));
+}
+
+/* HMAC Utils */
+async function importKeyHex(hex){
+  const bytes=new Uint8Array(hex.match(/.{1,2}/g).map(h=>parseInt(h,16)));
+  return crypto.subtle.importKey('raw',bytes,{name:'HMAC',hash:'SHA-256'},false,['sign']);
+}
+
+async function hmacHex(key,data){
+  const sig=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function unpack(base64Str){
+  try{
+    return JSON.parse(atob(base64Str));
+  }catch(e){
+    return null;
+  }
+}
+
+async function verifyAttendance(){
+  try{
+    // Parse URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const base = urlParams.get('token');
+    const sig = urlParams.get('sig');
+    
+    if(!base || !sig){
+      showError('Invalid QR code', 'Missing token or signature');
+      return;
+    }
+
+    // Decode payload
+    const payload = unpack(base);
+    if(!payload){
+      showError('Invalid QR code', 'Could not decode token');
+      return;
+    }
+
+    // Check expiry
+    const now = nowSec();
+    if(now > payload.exp){
+      showError('QR code expired', 'This QR code has expired. Please scan the latest one.');
+      return;
+    }
+
+    // Check version
+    if(payload.ver !== 1){
+      showError('Invalid QR version', 'QR code version not supported');
+      return;
+    }
+
+    // Get slot details
+    const slotDoc = await db.collection('slots').doc(payload.slot_id).get();
+    if(!slotDoc.exists){
+      showError('Session not found', 'This attendance session does not exist');
+      return;
+    }
+
+    const slotData = slotDoc.data();
+    
+    // Check if session is still live
+    if(slotData.status !== 'live'){
+      showError('Session ended', 'This attendance session has ended');
+      return;
+    }
+
+    // Verify signature using slot's kv_key
+    const kvKey = slotData.kv_key;
+    if(!kvKey){
+      showError('Configuration error', 'Session key not found');
+      return;
+    }
+
+    const hmacKey = await importKeyHex(kvKey);
+    const expectedSig = await hmacHex(hmacKey, base);
+    
+    if(expectedSig.toLowerCase() !== sig.toLowerCase()){
+      showError('Invalid signature', 'QR code signature verification failed');
+      return;
+    }
+
+    // User must be signed in
+    const user = auth.currentUser;
+    if(!user){
+      // Redirect to student login with return URL
+      const returnUrl = encodeURIComponent(window.location.href);
+      window.location.href = `student.html?redirect=${returnUrl}`;
+      return;
+    }
+
+    // Get user profile
+    const userDoc = await db.collection('users').doc(user.uid).get();
+    if(!userDoc.exists){
+      showError('Profile not found', 'Please complete your profile first');
+      return;
+    }
+
+    const userProfile = userDoc.data();
+
+    // Check for duplicate attendance
+    const dupCheck = await db.collection('checkins')
+      .where('slot_id','==',payload.slot_id)
+      .where('student_uid','==',user.uid)
+      .limit(1)
+      .get();
+    
+    if(!dupCheck.empty){
+      showSuccess('Attendance already marked!', `Welcome back, ${userProfile.name}`);
+      return;
+    }
+
+    // Check device duplicate
+    const dupDevCheck = await db.collection('checkins')
+      .where('slot_id','==',payload.slot_id)
+      .where('device_id','==',deviceId())
+      .limit(1)
+      .get();
+    
+    if(!dupDevCheck.empty){
+      showError('Already marked from this device', 'Attendance already recorded from this device');
+      return;
+    }
+
+    // Geo fence check
+    const geo = await captureGeoSilently();
+    if(slotData.room_lat && slotData.room_lng && geo){
+      const dist = distM(
+        {lat:slotData.room_lat, lng:slotData.room_lng},
+        {lat:geo.lat, lng:geo.lng}
+      );
+      if(dist > (slotData.radius_m || 60)){
+        showError('Location verification failed', `You are ${Math.round(dist)}m away. Please be within ${slotData.radius_m}m of the classroom.`);
+        return;
+      }
+    }
+
+    // Mark attendance
+    await db.collection('checkins').add({
+      student_uid: user.uid,
+      email: user.email,
+      name: userProfile.name || '',
+      reg_no: userProfile.reg_no || '',
+      department: userProfile.department || '',
+      slot_id: payload.slot_id,
+      class_id: slotData.class_id || null,
+      ts_client: new Date(),
+      ts_server: firebase.firestore.FieldValue.serverTimestamp(),
+      lat: geo?.lat || null,
+      lng: geo?.lng || null,
+      acc_m: geo?.acc_m || null,
+      device_id: deviceId(),
+      token_id: payload.token_id || null,
+      method: 'URL_REDIRECT',
+      result: 'OK',
+      remarks: 'Verified via URL'
+    });
+
+    showSuccess(
+      'Congrats! Your attendance has been marked successfully!',
+      `Course: ${slotData.course || 'N/A'}`
+    );
+
+  }catch(e){
+    console.error('Verification error:', e);
+    showError('Verification failed', e.message || 'An error occurred during verification');
+  }
+}
+
+// Wait for auth state
+auth.onAuthStateChanged(user => {
+  if(user){
+    // User is signed in, proceed with verification
+    verifyAttendance();
+  }else{
+    // Redirect to login
+    const returnUrl = encodeURIComponent(window.location.href);
+    window.location.href = `student.html?redirect=${returnUrl}`;
+  }
+});
+</script>
+</body>
+</html>

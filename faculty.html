@@ -115,6 +115,7 @@
             <option>Dr. Gopal Sarangi</option><option>Dr. Shruti Sharma Rana</option><option>Dr Parul Behl</option>
             <option>Dr Anand Jaiswal</option><option>Dr Moumita Acharyya</option><option>Dr. Ashutosh Srivastava</option>
             <option>Prof. Anil Gupta</option><option>Mr. Indrasena Reddy</option>
+            <option>Prof. Anil Gupta1</option><option>Mr. Neelesh</option>
           </select>
         </div>
         <div><label>Password</label><input id="loginPass" type="password" placeholder="Your faculty password"></div>
@@ -288,8 +289,8 @@ async function drawQR(){
   const payload = makeTokenPayload();
   const base = pack(payload);
   const sigHex = await hmacHex(hmacKey, base); // sign base64 with per-slot secret
-  // const attUrl = `att://v1.${base}.${sigHex}`;
-  const attUrl = "https://www.google.com";
+  // Generate URL with token and signature as query parameters
+  const attUrl = `https://indrasenareddy11v.github.io/PQRSTU_WebApp/verify.html?token=${encodeURIComponent(base)}&sig=${encodeURIComponent(sigHex)}`;
   const holder=$('qr'); holder.innerHTML='';
   new QRCode(holder,{text:attUrl,width:280,height:280,correctLevel:QRCode.CorrectLevel.M});
   $('qrMsg').textContent=`QR refreshed · HS256 signature · expires in ${payload.exp - nowSec()}s`;
