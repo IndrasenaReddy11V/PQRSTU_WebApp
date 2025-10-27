@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>Student · PQRSTU</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -88,7 +90,12 @@
   .btn.dark{ background:linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25)) }
   .btn.red{ background:linear-gradient(180deg, rgba(239,68,68,.55), rgba(239,68,68,.28)) }
   .row{ display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center }
-  #scanner{ border-radius:12px; overflow:hidden; background:#0f1630; border:1px dashed rgba(255,255,255,.2); position:relative }
+  #scanner{ 
+    border-radius:12px; overflow:hidden; background:#0f1630; 
+    border:1px dashed rgba(255,255,255,.2); position:relative;
+    width:100%; max-width:440px; min-height:300px;
+  }
+  #scanner video{ width:100%; height:auto; display:block; }
   /* Scanner glow */
   #scanner::after{
     content:""; position:absolute; inset:-2px; border-radius:12px;
@@ -439,12 +446,27 @@ qs('startScan').onclick=async()=>{
   try{
     if(html5Qr){ try{await html5Qr.stop()}catch(_){ } html5Qr.clear(); }
     html5Qr = new Html5Qrcode("scanner",{ verbose:false });
+    
+    // Better camera selection for mobile
     const cams = await Html5Qrcode.getCameras();
     if(!cams.length){ setScanMsg('No cameras found'); return; }
-    const backCam = cams.find(c=>/back|rear|environment/i.test(c.label)) || cams[0];
+    
+    // Try to find back camera (preferred on mobile)
+    const backCam = cams.find(c=>/back|rear|environment/i.test(c.label));
+    
+    // Use facingMode for mobile devices
+    const config = backCam 
+      ? { deviceId: { exact: backCam.id } }
+      : { facingMode: { ideal: "environment" } };
+    
     await html5Qr.start(
-      { deviceId:{ exact: backCam.id } },
-      { fps:16, qrbox:320, aspectRatio:1.0 },
+      config,
+      { 
+        fps: 10, 
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+        disableFlip: false
+      },
       async (decodedText)=>{
         // Handle URL-based QR codes
         if(decodedText.includes('verify.html?token=')){
@@ -473,9 +495,13 @@ qs('startScan').onclick=async()=>{
         }
       }, (_)=>{}
     ); setScanMsg('Camera active — hold QR inside the box');
-  }catch(e){ setScanMsg('Camera error: '+(e.message||e)); }
+  }catch(e){ 
+    console.error('Camera error:', e);
+    setScanMsg('Camera error: '+(e.message||e)); 
+    alert('Camera permission required. Please allow camera access in your browser settings.');
+  }
 };
-qs('stopScan').onclick=async()=>{ if(html5Qr){ await html5Qr.stop(); html5Qr.clear(); html5Qr=null; setScanMsg('Scanner stopped'); } };
+qs('stopScan').onclick=async()=>{ if(html5Qr){ try{await html5Qr.stop()}catch(_){}; html5Qr.clear(); html5Qr=null; setScanMsg('Scanner stopped'); } };
 
 /* Verify token KV (HMAC) and time */
 async function verifyKVSignature(payload, base){
