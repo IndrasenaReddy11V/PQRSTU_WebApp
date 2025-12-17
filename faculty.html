@@ -6,205 +6,133 @@
 <title>Faculty · PQRSTU</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0b1220; --card:#141b2e; --text:#eaf0ff;}
+  :root{--bg:#111; --card:#222; --text:#fff;}
   body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);padding:20px;display:flex;justify-content:center}
-  .wrap{max-width:1100px;width:100%}
-  .card{background:rgba(20,27,46,0.9);border:1px solid #334;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 10px 30px #000}
+  .wrap{max-width:800px;width:100%}
+  .card{background:var(--card);border:1px solid #333;border-radius:16px;padding:20px;margin-bottom:20px;}
   .hidden{display:none}
-  input,select{width:100%;padding:12px;background:#080c16;border:1px solid #334;color:#fff;border-radius:8px;margin:8px 0 16px}
-  .btn{padding:12px 24px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;color:#fff;background:#334;font-size:16px}
-  .btn.green{background:#16a34a} .btn.red{background:#ef4444} .btn.blue{background:#2563eb}
-  #qrContainer{background:#fff;padding:20px;border-radius:12px;display:inline-block;margin:15px 0}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-  /* Big QR Style */
-  #qr img { display: block; margin: 0 auto; }
+  .btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;color:#fff;background:#333;margin-right:10px}
+  .btn.green{background:#16a34a} .btn.red{background:#ef4444}
+  #qrContainer{background:#fff;padding:20px;display:inline-block;margin:15px 0}
+  select{padding:10px; width:100%; margin-bottom:10px}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <div id="loginPanel" class="card">
-    <h1>Faculty Portal</h1>
-    <button class="btn blue" onclick="auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())">Login with Google</button>
-  </div>
-
-  <div id="setupPanel" class="card hidden">
-    <h2>Start Session</h2>
-    <label>Select Course:</label>
+  
+  <div id="setupPanel" class="card">
+    <h1>Faculty Panel</h1>
+    <button class="btn" onclick="auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())">Login</button>
+    <div id="authStatus" style="margin-top:10px;color:#888">Not signed in</div>
+    
+    <hr style="border:0;border-top:1px solid #333;margin:20px 0">
+    
     <select id="course">
        <option>PPM 179 - Design Thinking</option>
-       <option>PPM 202 - Project Management</option>
-       <option>MBA - Sustainability</option>
+       <option>Test Course</option>
     </select>
-    <button class="btn green" id="startBtn">Start Session</button>
+    <button class="btn green" id="startBtn" disabled>Start Session</button>
   </div>
 
   <div id="livePanel" class="card hidden">
-    <div class="grid">
-      <div style="text-align:center">
-        <h2>Scan to Mark</h2>
-        <div id="qrContainer"><div id="qr"></div></div>
-        <p id="qrTimer" style="color:#aaa; font-family:monospace">Refreshing...</p>
-        <button class="btn red" id="endBtn">End Session</button>
-        <button class="btn blue" onclick="dlExcel()">Export Excel</button>
-      </div>
-      <div>
-        <h2>Raise Tokens (Live)</h2>
-        <div id="tokenList">Waiting for issues...</div>
-      </div>
+    <div style="text-align:center">
+      <h2>Scan to Mark</h2>
+      <div id="qrContainer"><div id="qr"></div></div>
+      <p id="qrTimer">Refreshing...</p>
+      <button class="btn red" id="endBtn">End Session</button>
     </div>
+    <hr style="border:0;border-top:1px solid #333;margin:20px 0">
+    <h3>Raise Tokens</h3>
+    <div id="tokenList">Waiting...</div>
   </div>
 
   <div id="listPanel" class="card hidden">
-    <h2>Attendees (<span id="count">0</span>)</h2>
-    <table style="width:100%; border-collapse:collapse">
-      <thead>
-        <tr style="border-bottom:1px solid #445">
-          <th style="text-align:left; padding:10px">Time</th>
-          <th style="text-align:left; padding:10px">Name</th>
-          <th style="text-align:left; padding:10px">Reg No</th>
-          <th style="text-align:left; padding:10px">Status</th>
-        </tr>
-      </thead>
-      <tbody id="attRows"></tbody>
-    </table>
+    <h3>Attendees: <span id="count">0</span></h3>
+    <div id="attList" style="max-height:200px;overflow-y:auto"></div>
   </div>
 </div>
 
 <script>
-// CONFIG
 const firebaseConfig={apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",authDomain:"project-qr-eceae.firebaseapp.com",projectId:"project-qr-eceae",storageBucket:"project-qr-eceae.firebasestorage.app",messagingSenderId:"527248340371",appId:"1:527248340371:web:870ca9bed83372e390e466"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore(), auth=firebase.auth();
 
-let slotId=null, attendees=[];
+let slotId=null;
 
 auth.onAuthStateChanged(u=>{
   if(u){
-    document.getElementById('loginPanel').classList.add('hidden');
-    document.getElementById('setupPanel').classList.remove('hidden');
+    document.getElementById('authStatus').innerText = "Signed in as " + u.email;
+    document.getElementById('startBtn').disabled = false;
   }
 });
 
-// START SESSION
 document.getElementById('startBtn').onclick=async()=>{
-  const course = document.getElementById('course').value;
-  // Create Session
   const ref = await db.collection('slots').add({
     created_by: auth.currentUser.uid,
-    course: course,
+    course: document.getElementById('course').value,
     status: 'live',
-    start_ts: firebase.firestore.FieldValue.serverTimestamp(),
-    // Simple 4-digit PIN for manual override if needed
-    pin: Math.floor(1000 + Math.random() * 9000) 
+    created_at: new Date()
   });
   slotId = ref.id;
   
-  // Switch Views
   document.getElementById('setupPanel').classList.add('hidden');
   document.getElementById('livePanel').classList.remove('hidden');
   document.getElementById('listPanel').classList.remove('hidden');
   
-  // Start Logic
   startQR();
-  listenAtt();
-  listenTokens();
-};
+  listenData();
+}
 
-// QR LOGIC (Simplified for easy scanning)
 function startQR(){
   genQR();
-  setInterval(genQR, 10000); // Rotate every 10s
+  setInterval(genQR, 10000);
 }
 
 function genQR(){
-  // MINIMAL DATA PAYLOAD (Smaller payload = Bigger QR dots)
-  const payload = {
-    s: slotId, // Session ID
-    e: Math.floor(Date.now()/1000) + 120 // Expiry (2 mins)
-  };
-  
-  const jsonStr = JSON.stringify(payload);
+  // RAW FORMAT: SLOTID|EXPIRY
+  const exp = Math.floor(Date.now()/1000) + 15; // 15s validity
+  const rawData = `${slotId}|${exp}`;
   
   document.getElementById('qr').innerHTML = "";
-  
-  // Use 'L' (Low) error correction for least density (easiest scan)
+  // Level L = Biggest Blocks
   new QRCode(document.getElementById('qr'), {
-    text: jsonStr,
-    width: 280,
-    height: 280,
-    correctLevel: QRCode.CorrectLevel.L 
+    text: rawData,
+    width: 250,
+    height: 250,
+    correctLevel: QRCode.CorrectLevel.L
   });
-  
-  document.getElementById('qrTimer').innerText = "Valid until " + new Date((payload.e)*1000).toLocaleTimeString();
+  document.getElementById('qrTimer').innerText = "Valid until " + new Date(exp*1000).toLocaleTimeString();
 }
 
-// LISTEN FOR ATTENDANCE
-function listenAtt(){
-  db.collection('checkins').where('slot_id','==',slotId).orderBy('ts_server','desc')
-  .onSnapshot(s=>{
-    attendees = s.docs.map(d=>d.data());
+function listenData(){
+  // Attendees
+  db.collection('checkins').where('slot_id','==',slotId).onSnapshot(s=>{
     document.getElementById('count').innerText = s.size;
-    document.getElementById('attRows').innerHTML = attendees.map(a=>
-      `<tr style="border-bottom:1px solid #223">
-         <td style="padding:10px">${new Date(a.ts_server?.seconds*1000).toLocaleTimeString()}</td>
-         <td style="padding:10px">${a.name}</td>
-         <td style="padding:10px">${a.reg_no}</td>
-         <td style="padding:10px; color:#4ade80">✅ OK</td>
-       </tr>`
+    document.getElementById('attList').innerHTML = s.docs.map(d=>
+      `<div>${d.data().name} (${d.data().reg_no})</div>`
     ).join('');
   });
-}
-
-// LISTEN FOR TOKENS
-function listenTokens(){
+  
+  // Tokens
   db.collection('raise_tokens').where('slot_id','==',slotId).onSnapshot(s=>{
-    if(s.empty) {
-        document.getElementById('tokenList').innerHTML = '<div style="color:#667">No issues reported.</div>';
-        return;
-    }
     document.getElementById('tokenList').innerHTML = s.docs.map(d=>{
       const t = d.data();
-      return `<div style="background:#234;padding:12px;margin-bottom:8px;border-radius:8px; border:1px solid #445">
-        <div style="font-weight:bold; color:#fff">${t.student_name} (${t.reg_no})</div>
-        <div style="color:#fca5a5; margin:4px 0">Reason: ${t.reason}</div>
-        <div style="margin-top:8px">
-            <button class="btn green" style="padding:5px 10px; font-size:12px" onclick="reply('${d.id}','accepted','${t.student_name}','${t.reg_no}')">Accept</button> 
-            <button class="btn red" style="padding:5px 10px; font-size:12px" onclick="reply('${d.id}','denied')">Deny</button>
-        </div>
+      return `<div style="background:#333;padding:10px;margin:5px 0">
+        <b>${t.student_name}</b>: ${t.reason} (${t.state})
+        <br><button onclick="reply('${d.id}','accepted')">Accept</button>
+        <button onclick="reply('${d.id}','denied')">Deny</button>
       </div>`;
     }).join('');
   });
 }
 
-// HANDLE TOKEN REPLY
-window.reply = async (id, state, name, reg) => {
-  await db.collection('raise_tokens').doc(id).update({state});
-  if(state === 'accepted'){
-      // Auto-mark attendance
-      await db.collection('checkins').add({
-          slot_id: slotId,
-          name: name,
-          reg_no: reg,
-          ts_server: firebase.firestore.FieldValue.serverTimestamp(),
-          method: 'TOKEN_OVERRIDE'
-      });
-  }
-};
+window.reply = (id, state) => db.collection('raise_tokens').doc(id).update({state});
 
-// EXPORT
-window.dlExcel = () => {
-  const ws = XLSX.utils.json_to_sheet(attendees);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-  XLSX.writeFile(wb, "Attendance.xlsx");
-};
-
-document.getElementById('endBtn').onclick=async()=>{
+document.getElementById('endBtn').onclick = async () => {
   await db.collection('slots').doc(slotId).update({status:'closed'});
   location.reload();
 }
