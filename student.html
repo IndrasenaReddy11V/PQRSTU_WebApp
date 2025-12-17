@@ -3,96 +3,72 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<meta name="mobile-web-app-capable" content="yes"/>
 <title>Student · PQRSTU</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg1:#0a0f1f;--bg2:#0e1530;--ink:#eaf0ff;--muted:#b9c3df;--stroke:rgba(255,255,255,.12);
-    --card:rgba(16,23,41,.62);--green:#16a34a;--red:#ef4444;--blue:#3b82f6;--amber:#f59e0b
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; font-family:Inter,system-ui,sans-serif; color:var(--ink);
-    background:
-      radial-gradient(1200px 600px at 20% -10%, #2a3566 0%, transparent 60%),
-      radial-gradient(1000px 700px at 100% 0%, #5b2231 0%, transparent 60%),
-      linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
-    padding:20px; display:flex; justify-content:center; overflow-x:hidden
-  }
-  .fx{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(2px 2px at 10% 20%,rgba(255,255,255,.12) 40%,transparent 41%);opacity:.5}
-  .wrap{ width:min(980px,100%); position:relative; z-index:1 }
-  .card{
-    background:var(--card); border:1px solid var(--stroke); border-radius:16px;
-    padding:18px; margin:18px 0; backdrop-filter: blur(6px);
-    opacity:0; animation:up .5s forwards;
-  }
-  @keyframes up{to{opacity:1}}
-  .hidden{display:none !important}
-  input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #304;background:#0f1630;color:#fff;margin-bottom:12px}
-  .btn{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.2);color:#fff;font-weight:700;cursor:pointer;background:rgba(255,255,255,.1)}
-  .btn.green{background:var(--green)} .btn.red{background:var(--red)} .btn.dark{background:var(--blue)}
+  :root{ --bg:#0a0f1f; --card:#161d30; --text:#fff; --blue:#3b82f6; --green:#22c55e; }
+  body{ margin:0; font-family:Inter,sans-serif; background:var(--bg); color:var(--text); padding:20px; display:flex; justify-content:center; }
+  .wrap{ width:100%; max-width:500px; }
+  .card{ background:var(--card); padding:20px; border-radius:16px; box-shadow:0 10px 40px #000; margin-bottom:20px; border:1px solid #334; }
+  .hidden{ display:none !important; }
+  h2{ margin-top:0; }
   
-  /* SCANNER FIXES */
-  #scanner{ 
-    width:100%; border-radius:12px; overflow:hidden; background:#000; 
-    border:1px solid #333; position:relative; min-height:350px;
-  }
-  #scanner video { object-fit: cover; }
+  /* Form Elements */
+  input, select{ width:100%; padding:14px; margin-bottom:12px; border-radius:10px; border:1px solid #445; background:#0b1120; color:#fff; font-size:16px; }
   
-  #toast{position:fixed;bottom:20px;right:20px;z-index:9999}
-  .toast{background:#111;color:#fff;padding:12px 16px;border-radius:8px;border:1px solid #333;margin-top:8px;animation:up .3s}
+  /* Buttons */
+  .btn{ width:100%; padding:14px; border-radius:12px; border:none; font-weight:bold; font-size:16px; cursor:pointer; color:#fff; margin-bottom:10px; transition:0.2s; }
+  .btn.primary{ background:var(--blue); }
+  .btn.green{ background:var(--green); }
+  .btn.red{ background:#ef4444; }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+  /* Scanner Area */
+  #scanner{ width:100%; border-radius:12px; overflow:hidden; background:#000; min-height:300px; border:2px solid #445; }
 </style>
 </head>
 <body>
-<div class="fx"></div>
-<div id="toast"></div>
 
 <div class="wrap">
   <div id="authPanel" class="card" style="text-align:center">
-    <h1 style="margin:0 0 10px">PQRSTU</h1>
-    <p style="color:#aaa;margin-bottom:20px">Student Attendance Portal</p>
-    <button class="btn" id="googleBtn" style="background:#fff;color:#000;margin-bottom:10px">Sign in with Google</button>
-    <button class="btn" id="microsoftBtn" style="background:#2f2f2f">Sign in with Microsoft</button>
-    <div id="authMsg" style="margin-top:15px;font-size:13px;color:#aaa">Not signed in</div>
+    <h1>PQRSTU Student</h1>
+    <p style="color:#aaa; margin-bottom:30px">Attendance System</p>
+    <button class="btn" style="background:#fff; color:#000" id="googleBtn">Sign in with Google</button>
   </div>
 
-  <div id="signupPanel" class="card hidden">
+  <div id="profilePanel" class="card hidden">
     <h2>Update Profile</h2>
-    <input id="name" placeholder="Full Name">
-    <input id="reg" placeholder="Reg No (e.g. 2400249MBS)" maxlength="10">
-    <input id="dob" placeholder="DOB (e.g. 15Aug1999)">
-    <select id="dept"><option>MBA in Sustainability Management</option></select>
-    <button class="btn green" id="saveProfile">Save & Continue</button>
+    <input id="pName" placeholder="Full Name">
+    <input id="pReg" placeholder="Reg No (e.g. 2400249MBS)">
+    <input id="pDob" placeholder="DOB (e.g. 15Aug1999)">
+    <button class="btn primary" id="saveProfileBtn">Save Profile</button>
   </div>
 
   <div id="homePanel" class="card hidden">
     <h2 id="hi">Hello</h2>
-    <div style="background:rgba(255,255,255,.05);padding:15px;border-radius:10px;margin-bottom:15px">
-      <div id="liveStatus" style="font-weight:bold;color:#aaa">● Checking sessions...</div>
+    
+    <div style="background:#234; padding:15px; border-radius:10px; margin-bottom:20px; text-align:center">
+      <div id="statusText" style="font-weight:bold; color:#aaa">Checking for session...</div>
     </div>
-    <button class="btn green" id="goScan" disabled>Wait for Session...</button>
+    
+    <button class="btn green" id="scanBtn" disabled>📷 Scan QR Code</button>
+    
+    <hr style="border:0; border-top:1px solid #334; margin:20px 0">
+    
+    <h3>Having Issues?</h3>
+    <p style="font-size:13px; color:#aaa">If the scanner is not working, raise a token.</p>
+    <input id="rtReason" placeholder="Reason (e.g. Camera blocked)">
+    <button class="btn red" id="raiseBtn">Raise Token</button>
+    <div id="rtStatus" style="margin-top:10px; font-size:13px; color:#aaa"></div>
   </div>
 
   <div id="scanPanel" class="card hidden">
-    <h2>Scan QR</h2>
-    <p style="color:#aaa;font-size:13px">Verify your identity first:</p>
-    <input id="vPass" placeholder="Enter DOB (e.g. 15Aug1999) to unlock scanner">
-    
-    <button class="btn dark" id="startCam">📷 Open Camera (HD)</button>
-    
-    <div id="scanner" style="margin-top:15px"></div>
-    <p id="scanStatus" style="text-align:center;color:#aaa;margin-top:10px">Camera idle</p>
-    
-    <hr style="border:0;border-top:1px solid #333;margin:20px 0">
-    <h3>Issue? Raise Token</h3>
-    <input id="rtReason" placeholder="Reason (e.g. Camera not working)">
-    <button class="btn red" id="raiseBtn">Raise Token</button>
-    <p id="rtStatus" style="margin-top:5px;font-size:13px;color:#aaa"></p>
-    
-    <button class="btn" onclick="location.reload()" style="margin-top:20px">Back to Home</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+      <h2>Scan</h2>
+      <button class="btn" style="width:auto; padding:5px 15px; background:#334" onclick="closeScanner()">Close</button>
+    </div>
+    <div id="scanner"></div>
+    <p id="scanMsg" style="text-align:center; color:#aaa; margin-top:10px">Initializing camera...</p>
   </div>
 </div>
 
@@ -102,158 +78,169 @@
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
+// CONFIG
 const firebaseConfig={apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",authDomain:"project-qr-eceae.firebaseapp.com",projectId:"project-qr-eceae",storageBucket:"project-qr-eceae.firebasestorage.app",messagingSenderId:"527248340371",appId:"1:527248340371:web:870ca9bed83372e390e466"};
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore();
 
-let user=null, profile=null, currentSlot=null, html5Qr=null, lastGeo=null;
+let user=null, profile=null, html5Qr=null, activeSlotId=null;
 
-/* 1. AUTH & SETUP */
+// SETUP
 const qs=id=>document.getElementById(id);
-const show=(id)=>['authPanel','signupPanel','homePanel','scanPanel'].forEach(p=>qs(p).classList.toggle('hidden',p!==id));
+const show=id=>['authPanel','profilePanel','homePanel','scanPanel'].forEach(p=>qs(p).classList.toggle('hidden',p!==id));
 
+// AUTH
 qs('googleBtn').onclick=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-qs('microsoftBtn').onclick=()=>auth.signInWithPopup(new firebase.auth.OAuthProvider('microsoft.com'));
 
 auth.onAuthStateChanged(async u=>{
   if(u){
-    user=u; qs('authMsg').innerText=`Signed in: ${u.email}`;
+    user=u;
     const doc=await db.collection('users').doc(u.uid).get();
     if(doc.exists){
-      profile=doc.data(); qs('hi').innerText=`Hi, ${profile.name}`;
+      profile=doc.data();
+      qs('hi').innerText=`Hi, ${profile.name}`;
       show('homePanel');
-      listenSessions(); // Start Real-time listener immediately
-    } else { show('signupPanel'); }
+      startLiveCheck(); // Start polling for session
+    } else { show('profilePanel'); }
   } else { show('authPanel'); }
 });
 
-qs('saveProfile').onclick=async()=>{
-  const name=qs('name').value, reg=qs('reg').value, dob=qs('dob').value;
-  if(!name || !reg || !dob) return alert("All fields required");
-  await db.collection('users').doc(user.uid).set({uid:user.uid, email:user.email, name, reg_no:reg, dob, created_at:new Date()});
+qs('saveProfileBtn').onclick=async()=>{
+  const name=qs('pName').value, reg=qs('pReg').value, dob=qs('pDob').value;
+  if(!name || !reg) return alert("Fill all fields");
+  await db.collection('users').doc(user.uid).set({uid:user.uid, email:user.email, name, reg_no:reg, dob});
   location.reload();
-};
-
-/* 2. REAL-TIME SESSION LISTENER (Fixes Raise Token) */
-function listenSessions(){
-  db.collection('slots').where('status','==','live')
-    .onSnapshot(snap => {
-      if(!snap.empty){
-        const d = snap.docs[0];
-        currentSlot = { id: d.id, ...d.data() };
-        qs('liveStatus').innerHTML = `<span style="color:#4ade80">● LIVE: ${currentSlot.course}</span>`;
-        qs('goScan').disabled = false;
-        qs('goScan').innerText = "Mark Attendance";
-      } else {
-        currentSlot = null;
-        qs('liveStatus').innerHTML = `<span style="color:#ef4444">● No active session</span>`;
-        qs('goScan').disabled = true;
-        qs('goScan').innerText = "Wait for Session...";
-      }
-    });
 }
 
-/* 3. HD SCANNER CONFIG (Fixes Recognition) */
-qs('goScan').onclick=()=>{
-  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>lastGeo=p.coords);
+// LIVE CHECKER
+function startLiveCheck(){
+  db.collection('slots').where('status','==','live').onSnapshot(snap=>{
+    if(!snap.empty){
+      activeSlotId = snap.docs[0].id; // Store ID globally
+      qs('statusText').innerHTML = `<span style="color:#4ade80">● LIVE SESSION ACTIVE</span>`;
+      qs('scanBtn').disabled = false;
+      qs('scanBtn').innerText = "Scan QR Code";
+    } else {
+      activeSlotId = null;
+      qs('statusText').innerHTML = `<span style="color:#ef4444">● No active session</span>`;
+      qs('scanBtn').disabled = true;
+      qs('scanBtn').innerText = "Wait for Session...";
+    }
+  });
+}
+
+// SCANNER (Logic Updated for Raw JSON)
+qs('scanBtn').onclick=async()=>{
   show('scanPanel');
-}
-
-qs('startCam').onclick=async()=>{
-  if(qs('vPass').value !== profile.dob) return alert(`Enter your DOB (${profile.dob}) to unlock camera.`);
   
   if(html5Qr) await html5Qr.stop();
   html5Qr = new Html5Qrcode("scanner");
   
-  const config = { 
-    fps: 15, // Higher FPS for faster focus
-    qrbox: { width: 250, height: 250 }, // Scannable area
-    aspectRatio: 1.0 
-  };
+  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
   
-  // FORCE HIGH RESOLUTION
-  const camConfig = { 
-    facingMode: "environment",
-    width: { min: 640, ideal: 1280, max: 1920 }, // Request 720p or 1080p
-    height: { min: 480, ideal: 720, max: 1080 } 
-  };
-
   try {
-    await html5Qr.start(camConfig, config, onScanSuccess, (err)=>{
-      // Ignore scan failures per frame, just wait for success
-    });
-    qs('scanStatus').innerText = "Scanning... Hold steady.";
+    // Attempt Back Camera
+    await html5Qr.start({ facingMode: "environment" }, config, onScanSuccess);
+    qs('scanMsg').innerText = "Point at the Faculty Screen";
   } catch(e) {
-    qs('scanStatus').innerText = "Camera Error: " + e;
-    // Fallback for older phones
-    html5Qr.start({ facingMode: "environment" }, config, onScanSuccess);
-  }
-};
-
-async function onScanSuccess(decodedText){
-  if(html5Qr) await html5Qr.stop();
-  qs('scanStatus').innerText = "Processing...";
-
-  try {
-    // 1. Parse Data (Handle URL or Raw)
-    let tokenStr = decodedText;
-    let sigStr = "";
-    
-    if(decodedText.includes("token=")){
-       const url = new URL(decodedText.startsWith("http") ? decodedText : "https://d.com/"+decodedText);
-       tokenStr = url.searchParams.get("token");
-       sigStr = url.searchParams.get("sig");
-    }
-    
-    if(!tokenStr) throw "Invalid QR format";
-
-    // 2. Decode & Validate
-    const payload = JSON.parse(atob(tokenStr));
-    if(!currentSlot || payload.slot_id !== currentSlot.id) throw "QR is for a different session";
-    if(Date.now()/1000 > payload.exp) throw "QR Expired. Scan new one.";
-
-    // 3. Mark Attendance
-    await db.collection('checkins').add({
-      slot_id: currentSlot.id, student_uid: user.uid, name: profile.name, reg_no: profile.reg_no,
-      email: user.email, ts_server: firebase.firestore.FieldValue.serverTimestamp(),
-      lat: lastGeo?.latitude, lng: lastGeo?.longitude, device: 'app_scan', result: 'OK'
-    });
-    
-    alert("✅ ATTENDANCE MARKED!");
-    location.reload();
-
-  } catch(e) {
-    alert("❌ Failed: " + (e.message || e));
-    location.reload();
+    qs('scanMsg').innerText = "Camera Error: " + e;
   }
 }
 
-/* 4. RAISE TOKEN (Fixed with currentSlot check) */
+async function onScanSuccess(text){
+  if(html5Qr) await html5Qr.stop();
+  qs('scanMsg').innerText = "Verifying...";
+  
+  try {
+    // 1. Try Parse JSON
+    let payload;
+    try { 
+        payload = JSON.parse(text); 
+    } catch(e) { 
+        // If not JSON, try decoding if it looks like the old base64 format (fallback)
+        if(text.includes('token=')) throw new Error("Please scan the NEW QR code on faculty screen.");
+        throw new Error("Invalid QR Format");
+    }
+
+    // 2. Validate
+    if(!payload.s || !payload.e) throw new Error("Invalid Data");
+    if(payload.s !== activeSlotId) throw new Error("QR is from a different session!");
+    if(Date.now()/1000 > payload.e) throw new Error("QR Expired! Scan the new one.");
+
+    // 3. Mark Attendance
+    await db.collection('checkins').add({
+      slot_id: activeSlotId,
+      student_uid: user.uid,
+      name: profile.name,
+      reg_no: profile.reg_no,
+      ts_server: firebase.firestore.FieldValue.serverTimestamp(),
+      method: 'QR_SCAN'
+    });
+
+    alert("✅ ATTENDANCE MARKED!");
+    closeScanner();
+
+  } catch(e) {
+    alert("❌ Error: " + e.message);
+    closeScanner();
+  }
+}
+
+function closeScanner(){
+  if(html5Qr) html5Qr.stop().then(()=>html5Qr.clear());
+  show('homePanel');
+}
+
+// RAISE TOKEN (Robust Version)
 qs('raiseBtn').onclick=async()=>{
   const reason = qs('rtReason').value;
-  if(!reason) return alert("Enter a reason");
-  if(!currentSlot) return alert("No live session to raise token for!");
-
-  qs('rtStatus').innerText = "Sending...";
-  await db.collection('raise_tokens').add({
-    slot_id: currentSlot.id, student_uid: user.uid, reg_no: profile.reg_no,
-    name: profile.name, reason, state: 'open', created_at: new Date()
-  });
-  qs('rtStatus').innerText = "✅ Sent! Waiting for faculty.";
-  qs('rtReason').value = "";
+  if(!reason) return alert("Please enter a reason.");
   
-  // Listen for reply
-  db.collection('raise_tokens').where('slot_id','==',currentSlot.id).where('student_uid','==',user.uid)
-    .onSnapshot(s => {
-      s.docChanges().forEach(c => {
-        if(c.type === 'modified'){
-           const st = c.doc.data().state;
-           if(st === 'accepted') alert("Faculty APPROVED your token!");
-           if(st === 'denied') alert("Faculty DENIED your token.");
+  qs('rtStatus').innerText = "Connecting...";
+
+  // 1. FORCE CHECK for Session ID (Fail-safe)
+  let targetSlotId = activeSlotId;
+  
+  if(!targetSlotId){
+    // Try one manual fetch in case the listener was slow
+    const snap = await db.collection('slots').where('status','==','live').limit(1).get();
+    if(!snap.empty) targetSlotId = snap.docs[0].id;
+    else targetSlotId = 'GENERAL_ISSUE'; // Fallback so token still sends
+  }
+
+  // 2. Send Token
+  try {
+    await db.collection('raise_tokens').add({
+      slot_id: targetSlotId,
+      student_uid: user.uid,
+      student_name: profile.name,
+      reg_no: profile.reg_no,
+      reason: reason,
+      state: 'open',
+      created_at: new Date()
+    });
+    
+    qs('rtStatus').innerText = "✅ Token Sent! Waiting for faculty.";
+    qs('rtReason').value = "";
+    
+    // 3. Listen for reply specifically for this user
+    db.collection('raise_tokens')
+      .where('student_uid','==',user.uid)
+      .where('state','in',['accepted','denied'])
+      .orderBy('created_at','desc')
+      .limit(1)
+      .onSnapshot(s => {
+        if(!s.empty){
+          const status = s.docs[0].data().state;
+          if(status === 'accepted') alert("Faculty APPROVED your token!");
+          if(status === 'denied') alert("Faculty DENIED your token.");
         }
       });
-    });
-};
+
+  } catch(e) {
+    qs('rtStatus').innerText = "Error: " + e.message;
+  }
+}
 </script>
 </body>
 </html>
