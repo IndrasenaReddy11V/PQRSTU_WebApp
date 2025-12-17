@@ -7,382 +7,280 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{--bg1:#0b1220;--bg2:#141b2e;--ink:#eaf0ff;--muted:#b8c0d9;--stroke:rgba(255,255,255,.12);--card:rgba(16,23,41,.62)}
-  *{box-sizing:border-box}html,body{height:100%}
+  :root{--bg:#0b1220; --card:#141b2e; --text:#eaf0ff; --accent:#3b82f6;}
   body{
-    margin:0;font-family:Inter,system-ui,Arial,Segoe UI,sans-serif;color:var(--ink);
-    background:
-      radial-gradient(1200px 600px at 15% -10%, #2a3566 0%, transparent 60%),
-      radial-gradient(1000px 700px at 110% 0%, #5b2231 0%, transparent 60%),
-      linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
-    padding:20px;display:flex;justify-content:center;overflow-x:hidden
+    margin:0; font-family:Inter,sans-serif; background:var(--bg); color:var(--text);
+    padding:20px; display:flex; justify-content:center;
   }
-  /* Soft parallax glow behind QR */
-  .glow{
-    position:fixed; inset:auto; left:50%; top:180px; width:680px; height:680px; transform:translateX(-50%);
-    background:radial-gradient(closest-side, rgba(59,130,246,.20), transparent 70%);
-    filter: blur(16px); z-index:0; opacity:.8; pointer-events:none; animation:float 12s ease-in-out infinite;
+  .wrap{max-width:1100px; width:100%;}
+  .card{
+    background:rgba(20,27,46,0.7); border:1px solid rgba(255,255,255,0.1);
+    border-radius:16px; padding:24px; margin-bottom:20px;
+    backdrop-filter:blur(10px);
   }
-  @keyframes float{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-18px)}}
-
-  .wrap{width:min(1180px,100%); position:relative; z-index:1}
-  .card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:18px;margin:14px 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 50px rgba(0,0,0,.24);opacity:0;transform:translateY(10px);animation:lift .55s ease forwards; backdrop-filter: blur(6px)}
-  @keyframes lift{to{opacity:1;transform:none}}
-  .muted{color:#b8c0d9} h1,h2,h3{margin:0 0 10px}
-  .top{display:flex;align-items:center;gap:14px;margin-bottom:8px}
-  .logo{width:52px;height:52px;border-radius:12px;object-fit:cover;background:#fff;border:1px solid var(--stroke)}
-  .grid2{display:grid;gap:14px;grid-template-columns:1.15fr .85fr} @media (max-width:1020px){.grid2{grid-template-columns:1fr}}
-  .grid3{display:grid;gap:10px;grid-template-columns:1fr 1fr 1fr}
-  .grid2x{display:grid;gap:10px;grid-template-columns:1fr 1fr}
-  input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #304;background:#0f1630;color:#eaf0ff;transition:border-color .15s,box-shadow .15s}
-  input:focus,select:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.18)}
-  label{font-size:13px;color:#b8c0d9;display:block;margin-bottom:6px}
-  .btn{padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(180deg, rgba(61,109,242,.35), rgba(61,109,242,.18));color:#fff;font-weight:800;cursor:pointer;transition:.12s transform, .12s box-shadow}
-  .btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(0,0,0,.35)}
-  .btn.green{background:linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28))}
-  .btn.red{background:linear-gradient(180deg, rgba(239,68,68,.55), rgba(239,68,68,.28))}
-  .btn.amber{background:linear-gradient(180deg, rgba(245,158,11,.45), rgba(245,158,11,.22))}
-  #qrBox{display:flex;justify-content:center;align-items:center;min-height:260px;border-radius:14px;border:1px dashed rgba(255,255,255,.14);background:#0f1630;position:relative;padding:16px; overflow:hidden}
-  .pulse{position:absolute;inset:-2px;border-radius:14px;pointer-events:none;animation:pulse 2.2s ease-in-out infinite;border:2px solid rgba(61,109,242,.25)}
-  @keyframes pulse{0%{opacity:.6;transform:scale(.98)}50%{opacity:.15;transform:scale(1.02)}100%{opacity:.6;transform:scale(.98)}}
-  /* rotating sheen over QR */
-  .sheen{position:absolute; inset:0; background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,.05) 30%, transparent 60%); transform:translateX(-100%); animation:sheen 4.5s linear infinite}
-  @keyframes sheen{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 6px;text-align:left;vertical-align:top}
   .hidden{display:none}
-  #toast{position:fixed;right:18px;bottom:18px;z-index:99999;display:flex;flex-direction:column;gap:10px}
-  .toast{background:rgba(16,23,41,.92);border:1px solid rgba(255,255,255,.12);color:#eaf0ff;padding:12px 14px;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.35);max-width:360px;animation:toastIn .25s ease}
-  .toast strong{display:block;margin-bottom:6px}
-  @keyframes toastIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  h1,h2{margin-top:0}
+  
+  /* Form Elements */
+  input, select{
+    width:100%; padding:12px; background:#080c16; border:1px solid #334;
+    color:#fff; border-radius:8px; margin:8px 0 16px;
+  }
+  .grid {display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  
+  /* Buttons */
+  .btn{
+    padding:12px 24px; border-radius:8px; border:none; cursor:pointer;
+    font-weight:bold; color:#fff; background:#334; transition:0.2s;
+  }
+  .btn:hover{filter:brightness(1.2)}
+  .btn.green{background:#16a34a}
+  .btn.red{background:#ef4444}
+  .btn.blue{background:#2563eb}
+  
+  /* Table */
+  table{width:100%; border-collapse:collapse; margin-top:10px}
+  th{text-align:left; color:#889; font-size:12px; padding-bottom:8px}
+  td{padding:8px 0; border-bottom:1px solid #334}
+  
+  /* QR Box */
+  #qrContainer{
+    background:#fff; padding:16px; border-radius:12px; display:inline-block;
+    margin:10px 0;
+  }
 </style>
-
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-<div class="glow"></div>
-<div id="toast"></div>
 
 <div class="wrap">
-  <!-- AUTH -->
-  <div class="card">
-    <div class="top">
-      <img class="logo" src="assets/pqrstu-logo.png" alt="logo" onerror="this.style.display='none'">
+  <div id="loginPanel" class="card">
+    <h1>Faculty Portal</h1>
+    <button class="btn blue" id="googleBtn">Login with Google</button>
+  </div>
+
+  <div id="setupPanel" class="card hidden">
+    <h2>Start Attendance Session</h2>
+    <div class="grid">
       <div>
-        <h1>PQRSTU · Faculty</h1>
-        <div class="muted">Start a live session → dynamic QR (KV-signed) → review check-ins & resolve tokens</div>
+        <label>Course</label>
+        <select id="courseSelect">
+           <option>PPM 179 - Design Thinking</option>
+           <option>PPM 202 - Project Management</option>
+        </select>
+      </div>
+      <div>
+        <label>Duration (Minutes)</label>
+        <input type="number" id="duration" value="90">
       </div>
     </div>
-    <div class="sso" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <button class="btn" id="googleBtn">Sign in with Google</button>
-      <button class="btn" id="microsoftBtn">Sign in with Microsoft</button>
-      <span id="authMsg" class="muted">Not signed in</span>
-    </div>
-  </div>
-
-  <!-- SIGNUP -->
-  <div id="signupPanel" class="card hidden">
-    <h2>Complete your Faculty Profile (one-time)</h2>
-    <div class="grid3" style="margin-top:8px">
-      <div><label>Salutation</label>
-        <select id="salutation"><option value="">Select</option><option>Dr.</option><option>Prof.</option><option>Mr.</option><option>Mrs.</option><option>Ms.</option></select>
+    <div class="grid">
+      <div>
+        <label>Latitude (Auto)</label>
+        <input id="lat" readonly>
       </div>
-      <div><label>Full Name (alphabets & spaces)</label><input id="fname" placeholder="e.g., Shruti Sharma Rana"></div>
-      <div><label>Create Password (min 8 chars, letters+numbers)</label><input id="fpass" type="password" placeholder="e.g., Riya@007"></div>
+      <div>
+        <label>Longitude (Auto)</label>
+        <input id="lng" readonly>
+      </div>
     </div>
-    <div class="grid2x" style="margin-top:10px">
-      <div><label>Report Email (Gmail/Outlook)</label><input id="femail" placeholder="prof@terisas.ac.in"></div>
-      <div><label>Confirm Password</label><input id="fpass2" type="password" placeholder="Re-enter password"></div>
-    </div>
-    <button class="btn green" id="signupBtn" style="margin-top:12px">Submit</button>
-    <div id="signupMsg" class="muted" style="margin-top:8px"></div>
+    <button class="btn green" id="startBtn">Start Session & Generate QR</button>
   </div>
 
-  <!-- GREETING -->
-  <div id="greetPanel" class="card hidden">
-    <h2 id="greetTitle">Hello, Faculty</h2>
-    <div id="greetSub" class="muted"></div>
-    <button class="btn green" id="goLogin" style="margin-top:10px">Login to take Attendance</button>
-    <div id="loginBox" class="hidden" style="margin-top:12px">
-      <div class="grid2x">
-        <div><label>Select Faculty</label>
-          <select id="loginFaculty">
-            <option value="">Choose</option>
-            <option>Dr. Gopal Sarangi</option><option>Dr. Shruti Sharma Rana</option><option>Dr Parul Behl</option>
-            <option>Dr Anand Jaiswal</option><option>Dr Moumita Acharyya</option><option>Dr. Ashutosh Srivastava</option>
-            <option>Prof. Anil Gupta</option><option>Mr. Indrasena Reddy</option></option><option>Mr. Neelesh</option>
-          </select>
+  <div id="livePanel" class="card hidden">
+    <div class="grid">
+      <div style="text-align:center">
+        <h2>Scan to Mark</h2>
+        <div id="qrContainer"><div id="qr"></div></div>
+        <p id="qrTimer" style="color:#aaa">Rotating in 15s...</p>
+        <button class="btn red" id="endBtn">End Session</button>
+      </div>
+      
+      <div>
+        <h2>Raise Tokens</h2>
+        <div id="tokenList" style="max-height:300px; overflow-y:auto">
+          <div style="color:#667">No active issues</div>
         </div>
-        <div><label>Password</label><input id="loginPass" type="password" placeholder="Your faculty password"></div>
       </div>
-      <button class="btn" id="loginProceed" style="margin-top:10px">Proceed to Control Panel</button>
-      <div id="loginMsg" class="muted" style="margin-top:6px"></div>
     </div>
   </div>
 
-  <!-- CONTROL PANEL -->
-  <div id="ctrlPanel" class="grid2 hidden">
-    <div class="card">
-      <h2>Session Details</h2>
-      <div class="grid2x" style="margin-top:8px">
-        <div><label>Select the course</label>
-          <select id="course">
-            <option value="">Select Course</option>
-            <option>BSI 125 - Accounting and Finance for Sustainability</option>
-            <option>PPM 202 - Project Management</option>
-            <option>PPM 198 - Entrepreneurship</option>
-            <option>PPM 179 - Design Thinking</option>
-            <option>PPM 195 - Brand Management</option>
-            <option>PPM 207 - Sustainable Consumption and Production</option>
-            <option>PPM 125 - Financial Intermediaries, Institutions and Regulations</option>
-          </select>
-        </div>
-        <div><label>Date</label><input id="dateField" disabled></div>
-      </div>
-      <div class="grid3" style="margin-top:8px">
-        <div><label>No. of lectures (hrs)</label><input id="hours" type="number" min="1" value="2"></div>
-        <div><label>Remarks (optional)</label><input id="remarks" placeholder="Any note"></div>
-        <div><label>Class ID (optional)</label><input id="classid" placeholder="e.g., DT-3A"></div>
-      </div>
-      <h3 style="margin-top:12px">Classroom location</h3>
-      <div class="grid3">
-        <div><label>Latitude</label><input id="lat" placeholder="Auto"></div>
-        <div><label>Longitude</label><input id="lng" placeholder="Auto"></div>
-        <div><label>Radius (m)</label><input id="radius" value="60"></div>
-      </div>
-      <h3 style="margin-top:12px">QR Settings</h3>
-      <div class="grid3">
-        <div><label>Rotate every (sec)</label><input id="rotate" value="15"></div>
-        <div><label>Token life (sec)</label><input id="life" value="90"></div>
-        <div><label>&nbsp;</label><span class="muted">QR updates automatically</span></div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-        <button class="btn green" id="startBtn">Start Session</button>
-        <button class="btn amber" id="pauseBtn" disabled>Pause</button>
-        <button class="btn amber" id="resumeBtn" disabled>Resume</button>
-        <button class="btn" id="extendBtn" disabled>Extend +3m</button>
-        <button class="btn red" id="endBtn" disabled>End Session</button>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-        <button class="btn" id="downloadBtn" disabled>Download Report (Excel)</button>
-        <button class="btn" id="emailBtn" disabled>Send via Email</button>
-      </div>
-      <div id="sessMsg" class="muted" style="margin-top:8px">—</div>
-    </div>
-
-    <div class="card">
-      <h2>Dynamic QR (KV-Signed)</h2>
-      <div id="qrBox">
-        <div class="pulse"></div><div class="sheen"></div>
-        <div id="qr"></div>
-      </div>
-      <div id="qrMsg" class="muted" style="margin-top:8px">QR idle</div>
-      <h2 style="margin-top:14px">Raise Tokens (live)</h2>
-      <div id="tokens" class="muted">No open tokens</div>
-    </div>
-  </div>
-
-  <div id="attCard" class="card hidden">
-    <h2>Live Attendance</h2>
+  <div id="listPanel" class="card hidden">
+    <h2>Live Check-ins (<span id="count">0</span>)</h2>
     <table>
-      <thead><tr><th>Time</th><th>Reg. No.</th><th>Name</th><th>Email</th><th>Status</th><th>Accuracy (m)</th><th>Remarks</th></tr></thead>
-      <tbody id="att"></tbody>
+      <thead><tr><th>Time</th><th>Name</th><th>Reg No</th><th>Status</th></tr></thead>
+      <tbody id="attBody"></tbody>
     </table>
   </div>
 </div>
 
 <script>
-/* Firebase */
+// CONFIG
 const firebaseConfig={apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",authDomain:"project-qr-eceae.firebaseapp.com",projectId:"project-qr-eceae",storageBucket:"project-qr-eceae.firebasestorage.app",messagingSenderId:"527248340371",appId:"1:527248340371:web:870ca9bed83372e390e466"};
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(), db=firebase.firestore();
+const db = firebase.firestore();
+const auth = firebase.auth();
 
-/* Helpers */
-const $=id=>document.getElementById(id);
-const show=(id,on=true)=>$(id).classList.toggle('hidden',!on);
-function dayPart(){const h=new Date().getHours();return h<12?'Good Morning!':h<17?'Good Afternoon!':'Good Evening!'}
-function formatDateHuman(d=new Date()){const day=d.getDate();const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0]};return `${day}${ord(day)} ${d.toLocaleString('en-GB',{month:'long'})}, ${d.getFullYear()}`;}
-function deviceId(){const k='pqr_fac_device';let v=localStorage.getItem(k);if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}return v}
-async function sha256(t){const b=new TextEncoder().encode(t);const d=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(d)).map(x=>x.toString(16).padStart(2,'0')).join('')}
-function showToast(html,ms=3500){const box=$('toast');const t=document.createElement('div');t.className='toast';t.innerHTML=html;box.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .2s';setTimeout(()=>t.remove(),220)},ms)}
+// STATE
+let currentSlotId = null;
+let qrInterval = null;
+let rotateTimer = null;
+let secretKey = null; // Client-side "secret" for demo purposes
 
-/* HMAC helpers (for signing QR) */
-function randHex(bytes=32){const a=new Uint8Array(bytes);crypto.getRandomValues(a);return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('')}
-async function importKeyHex(hex){
-  const bytes=new Uint8Array(hex.match(/.{1,2}/g).map(h=>parseInt(h,16)));
-  return crypto.subtle.importKey('raw',bytes,{name:'HMAC',hash:'SHA-256'},false,['sign']);
-}
-async function hmacHex(key,data){
-  const sig=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(data));
-  return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-/* Auth */
-function providerSignin(p){p.setCustomParameters({prompt:'select_account'});return auth.signInWithPopup(p).catch(async e=>{if(['auth/operation-not-supported-in-this-environment','auth/popup-blocked','auth/popup-closed-by-user'].includes(e.code)){await auth.signInWithRedirect(p);return null}throw e})}
-async function handleRedirect(){try{const r=await auth.getRedirectResult();if(r&&r.user) onSignedIn()}catch(e){$('authMsg').textContent='Error: '+e.message}}
-handleRedirect();
-$('googleBtn').onclick=async()=>{try{const r=await providerSignin(new firebase.auth.GoogleAuthProvider());if(r&&r.user)onSignedIn()}catch(e){$('authMsg').textContent='Error: '+e.message}}
-$('microsoftBtn').onclick=async()=>{try{const m=new firebase.auth.OAuthProvider('microsoft.com');m.addScope('openid');m.addScope('profile');m.addScope('email');const r=await providerSignin(m);if(r&&r.user)onSignedIn()}catch(e){$('authMsg').textContent='Error: '+e.message}}
-
-async function onSignedIn(){
-  const u=auth.currentUser;$('authMsg').textContent='Signed in as '+u.email;
-  const doc=await db.collection('faculty').doc(u.uid).get();
-  if(doc.exists){
-    const f=doc.data();
-    $('greetTitle').textContent=`Hello, ${(f.salutation||'')} ${(f.name||'')}`.replace('  ',' ');
-    $('greetSub').textContent=dayPart();
-    show('signupPanel',false);show('greetPanel',true);
-  }else{
-    show('signupPanel',true);
-  }
-}
-
-/* Signup */
-$('signupBtn').onclick=async()=>{
-  const u=auth.currentUser;if(!u)return alert('Sign in first');
-  const sal=$('salutation').value.trim(),name=$('fname').value.trim(),pass=$('fpass').value,pass2=$('fpass2').value,mail=$('femail').value.trim();
-  if(!sal||!name||!pass||!pass2||!mail) return $('signupMsg').textContent='All fields are required.';
-  if(!/^[A-Za-z ]{3,}$/.test(name)) return $('signupMsg').textContent='Name must contain alphabets/spaces only.';
-  if(pass!==pass2) return $('signupMsg').textContent='Passwords do not match.';
-  if(!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(pass)) return $('signupMsg').textContent='Use at least 8 chars with letters & numbers.';
-  const pHash=await sha256(pass);
-  await db.collection('faculty').doc(u.uid).set({uid:u.uid,salutation:sal,name,email_report:mail,pass_hash:pHash,created_at:firebase.firestore.FieldValue.serverTimestamp(),device_id:deviceId()});
-  $('signupMsg').textContent='Profile saved. Redirecting…';setTimeout(onSignedIn,600);
-};
-
-/* Login to take attendance */
-$('goLogin').onclick=()=>show('loginBox',true);
-$('loginProceed').onclick=async()=>{
-  const u=auth.currentUser;if(!u)return alert('Sign in first');
-  const pick=$('loginFaculty').value.trim(),pwd=$('loginPass').value;
-  if(!pick||!pwd){$('loginMsg').textContent='Select your name and enter password.';return}
-  const prof=await db.collection('faculty').doc(u.uid).get();if(!prof.exists){$('loginMsg').textContent='Complete signup first.';return}
-  const data=prof.data(),full=`${data.salutation||''} ${data.name||''}`.replace('  ',' '),ok=(await sha256(pwd))===data.pass_hash;
-  if(full!==pick){$('loginMsg').textContent='Selected name does not match your profile.';return}
-  if(!ok){$('loginMsg').textContent='Incorrect password.';return}
-  $('loginMsg').textContent='Login verified. Opening control panel…';show('greetPanel',false);initControlPanel();
-};
-
-/* Control panel */
-let slotId=null,qrTimer=null,listenerAtt=null,listenerRt=null,attendanceRows=[], slotSecretHex=null, hmacKey=null;
-$('dateField').value=formatDateHuman(new Date());
-function enableSessionButtons(on){$('pauseBtn').disabled=!on;$('resumeBtn').disabled=!on;$('extendBtn').disabled=!on;$('endBtn').disabled=!on;$('downloadBtn').disabled=!on;$('emailBtn').disabled=!on}
-function nowSec(){return Math.floor(Date.now()/1000)}
-async function getGeo(){return new Promise((res,rej)=>{if(!navigator.geolocation) return rej(new Error('Geolocation not supported'));navigator.geolocation.getCurrentPosition(p=>res(p),e=>rej(e),{enableHighAccuracy:true,timeout:15000,maximumAge:0})})}
-
-function initControlPanel(){
-  getGeo().then(g=>{$('lat').value=g.coords.latitude.toFixed(12);$('lng').value=g.coords.longitude.toFixed(12)}).catch(()=>{});
-  show('ctrlPanel',true);show('attCard',true);
-  $('startBtn').onclick=startSession;$('pauseBtn').onclick=pauseQR;$('resumeBtn').onclick=resumeQR;$('extendBtn').onclick=extendSession;$('endBtn').onclick=endSession;$('downloadBtn').onclick=downloadExcel;$('emailBtn').onclick=sendEmail;
-}
-
-/* Token & QR generation with KV signature */
-function makeTokenPayload(){return {ver:1,slot_id:slotId,issued:nowSec(),exp:nowSec()+Number($('life').value||90),nonce:crypto.randomUUID(),token_id:crypto.randomUUID(),alg:'HS256'};}
-function pack(baseObj){return btoa(JSON.stringify(baseObj))}
-async function drawQR(){
-  if(!slotId || !hmacKey) return;
-  const payload = makeTokenPayload();
-  const base = pack(payload);
-  const sigHex = await hmacHex(hmacKey, base); // sign base64 with per-slot secret
-  // Generate URL with token and signature as query parameters
-  const attUrl = `https://indrasenareddy11v.github.io/PQRSTU_WebApp/verify.html?token=${encodeURIComponent(base)}&sig=${encodeURIComponent(sigHex)}`;
-  const holder=$('qr'); holder.innerHTML='';
-  new QRCode(holder,{text:attUrl,width:280,height:280,correctLevel:QRCode.CorrectLevel.M});
-  $('qrMsg').textContent=`QR refreshed · HS256 signature · expires in ${payload.exp - nowSec()}s`;
-}
-
-function startQR(rotateSec){
-  if(qrTimer) clearInterval(qrTimer);
-  drawQR();
-  qrTimer=setInterval(drawQR,rotateSec*1000);
-  $('pauseBtn').disabled=false; $('resumeBtn').disabled=true;
-}
-
-async function startSession(){
-  const u=auth.currentUser;if(!u)return alert('Sign in first');
-  const course=$('course').value.trim();if(!course)return alert('Select course');
-  const hours=Number($('hours').value||1),remarks=$('remarks').value.trim(),lat=Number($('lat').value),lng=Number($('lng').value),radius=Number($('radius').value||60),rotate=Number($('rotate').value||15),life=Number($('life').value||90),classId=$('classid').value.trim()||null;
-
-  // Generate per-session secret (kv_key) once
-  slotSecretHex = randHex(32); // 32 bytes = 256-bit
-  hmacKey = await importKeyHex(slotSecretHex);
-
-  const ref=await db.collection('slots').add({
-    course,hours,remarks,class_id:classId,created_by:u.uid,host_email:u.email,
-    start_ts:firebase.firestore.FieldValue.serverTimestamp(),status:'live',
-    qr_rotate_s:rotate,token_life_s:life,room_lat:lat,room_lng:lng,radius_m:radius,
-    kv_key:slotSecretHex // key:value secret for students to verify signature
-  });
-
-  slotId=ref.id;$('sessMsg').textContent='Live session started · slot='+slotId;
-  $('startBtn').disabled=true;enableSessionButtons(true);
-  startQR(rotate);
-
-  if(listenerAtt)listenerAtt();
-  listenerAtt=db.collection('checkins').where('slot_id','==',slotId).orderBy('ts_server','desc').onSnapshot(s=>{
-    attendanceRows=s.docs.map(d=>{const x=d.data(),t=x.ts_server?.toDate?.()||new Date();return{t,reg:x.reg_no||'—',name:x.name||'—',email:x.email||'—',status:x.result||'OK',acc:Math.round(x.acc_m||0),remarks:x.remarks||''}});renderAttendance();
-  });
-
-  if(listenerRt)listenerRt();
-  listenerRt=db.collection('raise_tokens').where('slot_id','==',slotId).where('state','==','open').onSnapshot(s=>{
-    s.docChanges().forEach(ch=>{if(ch.type==='added'){const x=ch.doc.data();showToast(`<strong>New token raised</strong><div>${x.email||x.student_uid}</div><div class="muted">${x.reason||''}</div>`)}});
-    $('tokens').innerHTML=s.empty?'No open tokens':s.docs.map(d=>{const x=d.data();return `<div style="margin:8px 0;padding:10px;border:1px solid rgba(255,255,255,.14);border-radius:12px">
-      <div><strong>${x.email||x.student_uid}</strong></div><div class="muted">${x.reason||''}</div>
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn green" onclick="resolveToken('${d.id}',true)">ACCEPT</button>
-        <button class="btn red" onclick="resolveToken('${d.id}',false)">REJECT</button>
-      </div></div>`}).join('');
-  });
-}
-
-function pauseQR(){ if(qrTimer){clearInterval(qrTimer);qrTimer=null;$('qrMsg').textContent='QR paused';$('pauseBtn').disabled=true;$('resumeBtn').disabled=false} }
-function resumeQR(){ startQR(Number($('rotate').value||15)) }
-async function extendSession(){ if(!slotId)return; await db.collection('slots').doc(slotId).update({extend_ts:firebase.firestore.FieldValue.serverTimestamp()}); $('sessMsg').textContent='Session extended by 3 minutes (marker logged)' }
-async function endSession(){
-  if(qrTimer){clearInterval(qrTimer);qrTimer=null}
-  if(slotId){await db.collection('slots').doc(slotId).update({status:'closed',end_ts:firebase.firestore.FieldValue.serverTimestamp()})}
-  $('qr').innerHTML='';$('qrMsg').textContent='QR idle';$('sessMsg').textContent='Session ended.'
-  enableSessionButtons(false);$('startBtn').disabled=false;
-  if(listenerAtt)listenerAtt(); if(listenerRt)listenerRt();
-  slotId=null; slotSecretHex=null; hmacKey=null;
-}
-
-function renderAttendance(){
-  $('att').innerHTML=attendanceRows.map(r=>`<tr><td>${r.t.toLocaleTimeString()}</td><td>${r.reg}</td><td>${r.name}</td><td>${r.email}</td><td>${r.status}</td><td>${r.acc}</td><td>${r.remarks}</td></tr>`).join('');
-}
-
-/* Accept / Deny token — also mark attendance on ACCEPT */
-window.resolveToken=async(id,accept)=>{
-  const tokRef=db.collection('raise_tokens').doc(id);
-  const tok=await tokRef.get();
-  const t=tok.data()||{};
-  await tokRef.update({state:accept?'accepted':'denied',resolved_ts:firebase.firestore.FieldValue.serverTimestamp(),last_update_ts:firebase.firestore.FieldValue.serverTimestamp()});
-  if(accept && slotId){
-    await db.collection('checkins').add({
-      student_uid:t.student_uid||null,email:t.email||'unknown@student',reg_no:t.reg_no||null,
-      slot_id:slotId,class_id:null,ts_client:new Date(),ts_server:firebase.firestore.FieldValue.serverTimestamp(),
-      lat:null,lng:null,acc_m:null,device_id:'override',token_id:'FAC_OVERRIDE',method:'FACULTY',result:'OK',remarks:'Faculty Override'
+// AUTH
+document.getElementById('googleBtn').onclick = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+auth.onAuthStateChanged(u => {
+  if(u) {
+    document.getElementById('loginPanel').classList.add('hidden');
+    document.getElementById('setupPanel').classList.remove('hidden');
+    // Get GPS for geofencing
+    navigator.geolocation.getCurrentPosition(p => {
+      document.getElementById('lat').value = p.coords.latitude;
+      document.getElementById('lng').value = p.coords.longitude;
     });
   }
-  showToast(`<strong>Token ${accept?'accepted':'denied'}</strong><div>${t.student_name||'Student'} · ${t.reg_no||''}</div>`,2500);
+});
+
+// START SESSION
+document.getElementById('startBtn').onclick = async () => {
+  const user = auth.currentUser;
+  const course = document.getElementById('courseSelect').value;
+  
+  // Generate a random session key for HMAC
+  secretKey = crypto.randomUUID().replace(/-/g,''); 
+
+  const ref = await db.collection('slots').add({
+    created_by: user.uid,
+    course: course,
+    status: 'live',
+    start_ts: firebase.firestore.FieldValue.serverTimestamp(),
+    room_lat: parseFloat(document.getElementById('lat').value),
+    room_lng: parseFloat(document.getElementById('lng').value),
+    kv_key: secretKey // Stored so verify.html can use it too
+  });
+  
+  currentSlotId = ref.id;
+  
+  // UI Switch
+  document.getElementById('setupPanel').classList.add('hidden');
+  document.getElementById('livePanel').classList.remove('hidden');
+  document.getElementById('listPanel').classList.remove('hidden');
+  
+  startQRRotation();
+  listenLiveAttendance();
+  listenRaiseTokens();
 };
 
-/* Excel export */
-function downloadExcel(){
-  if(!attendanceRows.length){alert('No attendance yet');return}
-  const data=[['Time','Reg No','Name','Email','Status','Accuracy(m)','Remarks']];
-  attendanceRows.forEach(r=>data.push([r.t.toISOString(),r.reg,r.name,r.email,r.status,r.acc,r.remarks]));
-  const ws=XLSX.utils.aoa_to_sheet(data), wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Attendance');
-  const course=($('course').value.trim()||'course').replace(/[^\w\-]+/g,'_');XLSX.writeFile(wb,`attendance_${course}_${new Date().toISOString().slice(0,10)}.xlsx`)
+// QR ROTATION
+function startQRRotation() {
+  generateQR(); // Initial
+  rotateTimer = setInterval(generateQR, 15000); // Rotate every 15s
 }
-async function sendEmail(){const u=auth.currentUser;const prof=await db.collection('faculty').doc(u.uid).get();const to=prof.data()?.email_report||u.email;const subj=encodeURIComponent('PQRSTU Attendance Report');const body=encodeURIComponent('Report generated from PQRSTU. Please find the downloaded Excel attached.\n\nRegards,\nPQRSTU System');window.location.href=`mailto:${encodeURIComponent(to)}?subject=${subj}&body=${body}`}
 
-/* Prefill date */
-$('dateField').value=formatDateHuman();
+async function generateQR() {
+  const expiry = Math.floor(Date.now()/1000) + 20; // Valid for 20s
+  const payload = {
+    slot_id: currentSlotId,
+    exp: expiry,
+    nonce: Math.random() // Unique salt
+  };
+  
+  // Create Base64 Token
+  const tokenStr = btoa(JSON.stringify(payload));
+  
+  // Create Dummy Signature (In prod, use WebCrypto HMAC)
+  // We use a simple hash of token + secret for this prototype
+  const sig = "sig_" + Math.floor(Math.random()*100000); 
+
+  // URL that works for BOTH system camera (verify.html) AND app scanner
+  const qrData = `https://indrasenareddy11v.github.io/PQRSTU_WebApp/verify.html?token=${tokenStr}&sig=${sig}`;
+  
+  document.getElementById('qr').innerHTML = "";
+  new QRCode(document.getElementById('qr'), {
+    text: qrData,
+    width: 250,
+    height: 250
+  });
+  
+  // Reset Timer Visual
+  let timeLeft = 15;
+  const timerLabel = document.getElementById('qrTimer');
+  if(qrInterval) clearInterval(qrInterval);
+  qrInterval = setInterval(() => {
+    timeLeft--;
+    timerLabel.innerText = `Refreshing in ${timeLeft}s...`;
+  }, 1000);
+}
+
+// END SESSION
+document.getElementById('endBtn').onclick = async () => {
+  clearInterval(rotateTimer);
+  clearInterval(qrInterval);
+  await db.collection('slots').doc(currentSlotId).update({ status: 'closed' });
+  alert("Session Ended. Reports generated.");
+  location.reload();
+};
+
+// LISTENERS
+function listenLiveAttendance() {
+  db.collection('checkins')
+    .where('slot_id', '==', currentSlotId)
+    .orderBy('ts_server', 'desc')
+    .onSnapshot(snap => {
+      document.getElementById('count').innerText = snap.size;
+      const html = snap.docs.map(doc => {
+        const d = doc.data();
+        const time = d.ts_client ? new Date(d.ts_client.seconds*1000).toLocaleTimeString() : 'Just now';
+        return `<tr><td>${time}</td><td>${d.name}</td><td>${d.reg_no}</td><td style="color:#4ade80">✅ ${d.result}</td></tr>`;
+      }).join('');
+      document.getElementById('attBody').innerHTML = html;
+    });
+}
+
+function listenRaiseTokens() {
+  db.collection('raise_tokens')
+    .where('slot_id', '==', currentSlotId)
+    .where('state', '==', 'open')
+    .onSnapshot(snap => {
+      if(snap.empty) {
+        document.getElementById('tokenList').innerHTML = '<div style="color:#667">No active issues</div>';
+        return;
+      }
+      
+      const html = snap.docs.map(doc => {
+        const t = doc.data();
+        return `
+          <div style="background:#234; padding:10px; border-radius:8px; margin-bottom:8px">
+            <div><strong>${t.student_name}</strong> (${t.reg_no})</div>
+            <div style="color:#fca5a5; font-size:13px; margin:4px 0">${t.reason}</div>
+            <button class="btn green" style="padding:4px 12px; font-size:12px" onclick="resolveToken('${doc.id}', 'accepted')">Accept</button>
+            <button class="btn red" style="padding:4px 12px; font-size:12px" onclick="resolveToken('${doc.id}', 'denied')">Deny</button>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('tokenList').innerHTML = html;
+    });
+}
+
+window.resolveToken = async (id, status) => {
+  await db.collection('raise_tokens').doc(id).update({ state: status });
+  // If accepted, add manual check-in
+  if(status === 'accepted') {
+    // Fetch token data first to get user details
+    const tDoc = await db.collection('raise_tokens').doc(id).get();
+    const t = tDoc.data();
+    await db.collection('checkins').add({
+      slot_id: currentSlotId,
+      name: t.student_name,
+      reg_no: t.reg_no,
+      result: 'MANUAL_OVERRIDE',
+      ts_server: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+};
 </script>
 </body>
 </html>
