@@ -3,138 +3,187 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>Student · PQRSTU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg1:#0a0f1f;--bg2:#0e1530;--ink:#eaf0ff;--muted:#b9c3df;--stroke:rgba(255,255,255,.12);
-    --card:rgba(16,23,41,.90);--green:#16a34a;--red:#ef4444;--blue:#3b82f6;
+    --card:rgba(16,23,41,.62);--green:#16a34a;--red:#ef4444;--blue:#3b82f6;--amber:#f59e0b
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; font-family:Inter,system-ui,sans-serif; color:var(--ink);
+    margin:0; font-family:Inter,system-ui,Arial,Segoe UI,sans-serif; color:var(--ink);
     background:
       radial-gradient(1200px 600px at 20% -10%, #2a3566 0%, transparent 60%),
       radial-gradient(1000px 700px at 100% 0%, #5b2231 0%, transparent 60%),
       linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
     padding:20px; display:flex; justify-content:center; overflow-x:hidden
   }
-  .wrap{ width:min(500px,100%); position:relative; z-index:1 }
-  .card{
-    background:var(--card); border:1px solid var(--stroke); border-radius:18px;
-    padding:24px; margin-bottom:20px; box-shadow:0 18px 50px rgba(0,0,0,.4);
-    backdrop-filter: blur(12px); animation:fadeIn .5s ease;
+  /* Subtle particle field */
+  .fx{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,.12) 40%, transparent 41%),
+                     radial-gradient(2px 2px at 70% 40%, rgba(255,255,255,.10) 40%, transparent 41%),
+                     radial-gradient(2px 2px at 40% 80%, rgba(255,255,255,.10) 40%, transparent 41%);
+    animation: drift 38s linear infinite;
+    opacity:.5;
+    filter: blur(.2px);
   }
-  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  
-  .hidden{display:none !important}
-  h1{margin:0 0 8px; font-size:28px; font-weight:800; background:linear-gradient(90deg,#fff,#ccc); -webkit-background-clip:text; -webkit-text-fill-color:transparent}
-  h2{margin:0 0 16px; font-size:20px}
-  .muted{color:var(--muted); font-size:14px; line-height:1.5}
-  
-  /* Inputs & Buttons */
-  input,select{
-    width:100%; padding:14px; border-radius:12px; border:1px solid #304060; 
-    background:#0f1630; color:#fff; margin-bottom:12px; font-size:15px;
-  }
-  input:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,.2)}
-  
-  .btn{
-    width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);
-    background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
-    color:#fff; font-weight:700; font-size:16px; cursor:pointer;
-    box-shadow:0 4px 12px rgba(0,0,0,.2); margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:10px;
-  }
-  .btn:active{transform:scale(.98)}
-  .btn.primary{background:var(--blue)}
-  .btn.green{background:var(--green)}
-  .btn.red{background:var(--red)}
+  @keyframes drift{0%{transform:translateY(0)}100%{transform:translateY(-120px)}}
 
-  /* Scanner Box */
-  #scannerContainer{
-    position:relative; border-radius:16px; overflow:hidden; 
-    border:2px dashed rgba(255,255,255,.3); background:#000; min-height:320px;
+  .wrap{ width:min(980px,100%); position:relative; z-index:1 }
+  .card{
+    background:var(--card); border:1px solid var(--stroke); border-radius:16px;
+    padding:18px; margin:18px 0;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 50px rgba(0,0,0,.24);
+    opacity:0; transform:translateY(8px); animation:up .55s .1s forwards;
+    backdrop-filter: blur(6px);
   }
-  #scanner video { object-fit: cover; width:100%; height:100%; }
-  
-  /* Status Overlays */
-  .overlay{position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.9); opacity:0; pointer-events:none; transition:opacity .3s}
-  .overlay.active{opacity:1; pointer-events:all}
-  .msg-box{background:#111; padding:30px; border-radius:20px; text-align:center; max-width:320px; border:1px solid #333}
-  .big-icon{font-size:48px; display:block; margin-bottom:16px}
+  @keyframes up{to{opacity:1; transform:none}}
+  .muted{ color:var(--muted) }
+  h2{margin:0 0 10px}
+  .title{ font-weight:800; font-size:26px; margin:4px 0 }
+  .subtitle{ color:var(--muted); margin:0 0 12px }
+  .loginbox{ max-width:520px; margin-inline:auto; text-align:center }
+  .sso{ display:flex; flex-direction:column; gap:10px; margin-top:10px }
+  .sbtn{
+    display:flex; align-items:center; gap:12px; justify-content:center;
+    width:100%; padding:12px 14px; border-radius:12px;
+    border:1px solid rgba(255,255,255,.18);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+    color:#fff; font-weight:800; cursor:pointer; transition:transform .15s, box-shadow .15s;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+  }
+  .sbtn:hover{ transform:translateY(-1px); box-shadow:0 12px 28px rgba(0,0,0,.35) }
+  .ico{ width:18px; height:18px; display:inline-block; }
+  .ico.g{ background:url('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg') center/contain no-repeat }
+  .ico.ms{
+    background-image:url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 480'>\
+      <rect x='24' y='24' width='204' height='204' fill='%23f25022'/>\
+      <rect x='252' y='24' width='204' height='204' fill='%237eb900'/>\
+      <rect x='24' y='252' width='204' height='204' fill='%2300a4ef'/>\
+      <rect x='252' y='252' width='204' height='204' fill='%23ffb900'/>\
+    </svg>");
+    background-position:center; background-repeat:no-repeat; background-size:contain;
+  }
+  .grid{ display:grid; gap:16px; grid-template-columns:1fr 1fr } @media (max-width:860px){ .grid{ grid-template-columns:1fr } }
+  input,button,select{ font-family:inherit; font-size:15px }
+  input,select{
+    width:100%; padding:12px; border-radius:10px; border:1px solid #304; background:#0f1630; color:#eaf0ff;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus,select:focus{ outline:none; border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.18) }
+  label{ font-size:13px; color:var(--muted); display:block; margin-bottom:6px }
+  .btn{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
+    color:#fff; font-weight:800; cursor:pointer; transition: transform .15s, filter .15s, box-shadow .15s;
+    box-shadow:0 10px 28px rgba(0,0,0,.32);
+  }
+  .btn:hover{ transform: translateY(-1px); filter:saturate(1.1); box-shadow:0 14px 34px rgba(0,0,0,.4) }
+  .btn.green{ background:linear-gradient(180deg, rgba(34,197,94,.55), rgba(34,197,94,.28)) }
+  .btn.dark{ background:linear-gradient(180deg, rgba(59,130,246,.45), rgba(59,130,246,.25)) }
+  .btn.red{ background:linear-gradient(180deg, rgba(239,68,68,.55), rgba(239,68,68,.28)) }
+  .row{ display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center }
+  #scanner{ 
+    border-radius:12px; overflow:hidden; background:#0f1630; 
+    border:1px dashed rgba(255,255,255,.2); position:relative;
+    width:100%; max-width:440px; min-height:300px;
+  }
+  #scanner video{ width:100%; height:auto; display:block; }
+  /* Scanner glow */
+  #scanner::after{
+    content:""; position:absolute; inset:-2px; border-radius:12px;
+    border:2px solid rgba(59,130,246,.22); animation:scanpulse 2.6s ease-in-out infinite; pointer-events:none
+  }
+  @keyframes scanpulse{0%{opacity:.7;transform:scale(.98)}50%{opacity:.15;transform:scale(1.02)}100%{opacity:.7;transform:scale(.98)}}
+
+  .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999; }
+  .okbg{ background:rgba(5,20,5,.85) } .errbg{ background:rgba(30,5,5,.85) }
+  .panel{ background:#0a7a33; border:2px solid #12d16a; color:#fff; padding:26px 30px; border-radius:18px; font-size:20px; font-weight:800; box-shadow:0 24px 80px rgba(0,0,0,.5); text-align:center; animation:pop .45s ease; }
+  .panel.red{ background:#7a0a0a; border-color:#ff6969 }
+  .bigcheck{ font-size:64px; line-height:1; display:block; margin-bottom:8px }
+  @keyframes pop{ from{transform:scale(.92); opacity:0} to{transform:scale(1); opacity:1} }
+  #toast{position:fixed;right:18px;bottom:18px;z-index:99999;display:flex;flex-direction:column;gap:10px}
+  .toast{background:rgba(16,23,41,.92);border:1px solid rgba(255,255,255,.12);color:#eaf0ff;padding:12px 14px;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.35);max-width:360px;animation:toastIn .25s ease}
+  .toast strong{display:block;margin-bottom:6px}
+  @keyframes toastIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
-
-<div id="successOverlay" class="overlay">
-  <div class="msg-box">
-    <span class="big-icon">✅</span>
-    <h3>Attendance Marked!</h3>
-    <p class="muted">Your presence has been recorded successfully.</p>
-    <button class="btn green" onclick="location.reload()">Done</button>
-  </div>
-</div>
+<div class="fx"></div>
+<div id="toast"></div>
 
 <div class="wrap">
-  <div id="authPanel" class="card">
-    <div style="text-align:center; padding:20px 0">
-      <h1>PQRSTU</h1>
-      <p class="muted" style="margin-bottom:30px">Log in to mark your attendance</p>
-      <button class="btn" id="googleBtn" style="background:#fff; color:#000">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Sign in with Google
-      </button>
-      <button class="btn" id="microsoftBtn" style="background:#2f2f2f">
-        <span style="font-size:18px">❖</span> Sign in with Microsoft
-      </button>
-      <div id="authMsg" class="muted" style="margin-top:16px; font-size:12px">Secure Authentication</div>
+
+  <div id="authPanel" class="card loginbox">
+    <div class="title">Welcome to PQRSTU</div>
+    <div class="subtitle">Log in to your account and mark your attendance</div>
+    <div class="sso">
+      <button class="sbtn" id="googleBtn"><span class="ico g"></span> Sign in with Google</button>
+      <button class="sbtn" id="microsoftBtn"><span class="ico ms"></span> Sign in with Microsoft</button>
     </div>
+    <div id="authMsg" class="muted" style="margin-top:12px">Not signed in</div>
   </div>
 
-  <div id="profilePanel" class="card hidden">
-    <h2>Complete Profile</h2>
-    <p class="muted">We need your details for the attendance record.</p>
-    <input id="pName" placeholder="Full Name">
-    <input id="pReg" placeholder="Registration No (e.g. 2400249MBS)" maxlength="10" style="text-transform:uppercase">
-    <input id="pDob" placeholder="DOB (e.g. 15Aug1999)">
-    <button class="btn primary" id="saveProfileBtn">Save & Continue</button>
-  </div>
-
-  <div id="homePanel" class="card hidden">
-    <h2 id="welcomeText" style="margin-bottom:6px">Hello Student</h2>
-    <p class="muted" style="margin-bottom:20px">Ready to mark attendance?</p>
-    
-    <div style="background:rgba(255,255,255,.06); padding:16px; border-radius:12px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.1)">
-      <div id="liveIndicator" style="font-weight:700; color:var(--red); display:flex; align-items:center; gap:8px">
-        <span>●</span> <span id="liveText">No Session Active</span>
+  <div id="signupPanel" class="card" style="display:none">
+    <h2>Complete your profile (one-time)</h2>
+    <div class="grid">
+      <div><label>Full Name</label><input id="name" placeholder="e.g., Indra Reddy"/></div>
+      <div><label>Department</label>
+        <select id="dept"><option value="">Select department</option><option>MBA in Sustainability Management</option></select>
       </div>
-      <div id="sessionInfo" class="muted" style="margin-top:4px; font-size:13px">Waiting for faculty...</div>
+      <div><label>Registration Number (10 chars, e.g., 2400249MBS)</label><input id="reg" maxlength="10"/></div>
+      <div><label>Date of Birth (DDMonYYYY, e.g., 27Aug2002)</label><input id="dob" maxlength="9"/></div>
     </div>
-
-    <button id="scanActionBtn" class="btn green" disabled>📷 Scan QR Code</button>
-    
-    <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--stroke)">
-      <h3 style="font-size:16px; margin:0 0 10px">Having issues?</h3>
-      <input id="rtReason" placeholder="Describe issue (e.g. Camera broken)">
-      <button id="raiseBtn" class="btn red">Raise Token</button>
-      <div id="rtStatus" class="muted" style="margin-top:8px; font-size:13px"></div>
-    </div>
+    <button class="btn dark" id="signupBtn" style="margin-top:10px">Submit</button>
+    <div id="signupMsg" class="muted" style="margin-top:8px"></div>
   </div>
 
-  <div id="scanPanel" class="card hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
-      <h2>Scan QR</h2>
-      <button class="btn" style="width:auto; padding:6px 14px; margin:0; font-size:13px" onclick="stopScanner()">Cancel</button>
+  <div id="homePanel" class="card" style="display:none">
+    <h2 id="hi" style="margin:0 0 8px">Hi Student</h2>
+    <div class="muted">Keep your GPS on when you scan.</div>
+    <button class="btn green" id="goMark" style="margin-top:12px" disabled>Wait for Live Session...</button>
+    <div id="liveHint" class="muted" style="margin-top:6px">Checking live session…</div>
+  </div>
+
+  <div id="attPanel" class="card" style="display:none">
+    <h2>Attendance · Verify</h2>
+    <div class="grid">
+      <div><label>Registration No</label><input id="areg" maxlength="10" placeholder="Auto" readonly/></div>
+      <div><label>Password (DOB like 15Aug1999)</label><input id="apass" maxlength="9" placeholder="15Aug1999"/></div>
     </div>
-    <div id="scannerContainer"><div id="scanner"></div></div>
-    <p id="scanFeedback" style="text-align:center; margin-top:16px; color:var(--blue)">Initializing camera...</p>
-    
-    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--stroke)">
-      <p class="muted" style="font-size:12px">VERIFY IDENTITY</p>
-      <input id="vPass" placeholder="Enter your DOB to confirm" style="margin-bottom:8px">
+
+    <h3 style="margin:16px 0 8px">Scan the live dynamic QR</h3>
+    <div class="row">
+      <button class="btn dark" id="startScan">📷 Start Camera & Scan</button>
+      <button class="btn" id="stopScan">Stop</button>
     </div>
+    <div id="scanner" style="width:100%;max-width:440px;margin-top:10px"></div>
+    <div id="scanMsg" class="muted" style="margin-top:8px">Scanner idle</div>
+
+    <h3 style="margin:18px 0 8px">Raise Token (if you're facing an issue)</h3>
+    <div class="row">
+      <input id="rtReason" placeholder="Reason (mandatory)">
+      <button class="btn red" id="raiseBtn">Raise Token</button>
+    </div>
+    <div id="rtMsg" class="muted" style="margin-top:8px"></div>
+    <button class="btn" onclick="location.reload()" style="margin-top:20px; background:rgba(255,255,255,0.1)">Back to Home</button>
   </div>
 </div>
+
+<div id="okOverlay" class="overlay okbg"><div class="panel">
+  <span class="bigcheck">✅</span>
+  🎉 Congrats! Your attendance has been marked successfully
+</div></div>
+<div id="errOverlay" class="overlay errbg"><div class="panel red" id="errText">
+  ❌ Attendance marking failed! Please use “Raise Token” to contact faculty.
+</div></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -142,142 +191,240 @@
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
-// CONFIG
+/* Firebase */
 const firebaseConfig={apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",authDomain:"project-qr-eceae.firebaseapp.com",projectId:"project-qr-eceae",storageBucket:"project-qr-eceae.firebasestorage.app",messagingSenderId:"527248340371",appId:"1:527248340371:web:870ca9bed83372e390e466"};
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore();
 
-// STATE
-let user=null, profile=null, currentSlot=null, html5QrCode=null, lastGeo=null;
+/* Helpers */
+const qs=id=>document.getElementById(id), show=(id,on=true)=>qs(id).style.display=on?'block':'none';
+function deviceId(){const k='pqr_device';let v=localStorage.getItem(k);if(!v){v=crypto.randomUUID();localStorage.setItem(k,v)}return v;}
+function showToast(html,ms=3500){const box=document.getElementById('toast');const t=document.createElement('div');t.className='toast';t.innerHTML=html;box.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .2s';setTimeout(()=>t.remove(),220)},ms)}
+let lastGeo=null;
+async function captureGeoSilently(){try{const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:12000}));lastGeo={lat:p.coords.latitude,lng:p.coords.longitude,acc_m:p.coords.accuracy}}catch(_){/* ignore */}}
+function distM(a,b){const toR=x=>x*Math.PI/180,R=6371000;const dLat=toR(b.lat-a.lat),dLng=toR(b.lng-a.lng);const A=Math.sin(dLat/2)**2+Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.atan2(Math.sqrt(A),Math.sqrt(1-A));}
 
-// NAVIGATION
-function show(id){ ['authPanel','profilePanel','homePanel','scanPanel'].forEach(p=>document.getElementById(p).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+/* Auth */
+async function providerSignIn(p){p.setCustomParameters({prompt:'select_account'});try{return await auth.signInWithPopup(p)}catch(e){if(e.code&&e.code.includes('popup')){await auth.signInWithRedirect(p);return null}else throw e}}
 
-// 1. AUTH LOGIC
-const login=p=>auth.signInWithPopup(p).catch(e=>alert(e.message));
-document.getElementById('googleBtn').onclick=()=>login(new firebase.auth.GoogleAuthProvider());
-document.getElementById('microsoftBtn').onclick=()=>{const p=new firebase.auth.OAuthProvider('microsoft.com'); login(p);};
-
-auth.onAuthStateChanged(async u=>{
-  if(u){
-    user=u; document.getElementById('authMsg').textContent='Signed in as '+u.email;
-    const d=await db.collection('users').doc(u.uid).get();
-    if(d.exists){ profile=d.data(); document.getElementById('welcomeText').innerText='Hi, '+profile.name; show('homePanel'); listenLive(); }
-    else{ show('profilePanel'); }
-  }else{ show('authPanel'); }
-});
-
-// 2. PROFILE SAVE
-document.getElementById('saveProfileBtn').onclick=async()=>{
-  const name=document.getElementById('pName').value.trim(), reg=document.getElementById('pReg').value.trim(), dob=document.getElementById('pDob').value.trim();
-  if(!name||!reg||!dob) return alert('Fill all fields');
-  await db.collection('users').doc(user.uid).set({uid:user.uid,email:user.email,name,reg_no:reg,dob,created_at:new Date()});
-  location.reload();
-};
-
-// 3. LISTEN FOR SESSIONS (Fixes "Raise Token" bug)
-function listenLive(){
-  db.collection('slots').where('status','==','live').onSnapshot(snap=>{
-    if(!snap.empty){
-      const d=snap.docs[0]; currentSlot={id:d.id, ...d.data()};
-      document.getElementById('liveText').textContent='Attendance is LIVE';
-      document.getElementById('liveIndicator').style.color='var(--green)';
-      document.getElementById('sessionInfo').textContent=`${currentSlot.course}`;
-      document.getElementById('scanActionBtn').disabled=false;
-    }else{
-      currentSlot=null;
-      document.getElementById('liveText').textContent='No Session Active';
-      document.getElementById('liveIndicator').style.color='var(--red)';
-      document.getElementById('sessionInfo').textContent='Waiting for faculty...';
-      document.getElementById('scanActionBtn').disabled=true;
-    }
-  });
+// Handle redirect result on page load
+async function handleRedirectResult(){
+  try{ const result = await auth.getRedirectResult(); if(result && result.user){ onLogin(); } }catch(e){ console.error('Redirect error:', e); }
 }
+handleRedirectResult();
 
-// 4. SCANNER (Fixes "Not Scanning" bug)
-document.getElementById('scanActionBtn').onclick=()=>{
-  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>lastGeo=p.coords);
-  show('scanPanel');
-  startScanner();
-};
+qs('googleBtn').onclick=async()=>{await captureGeoSilently();const gp=new firebase.auth.GoogleAuthProvider();const r=await providerSignIn(gp);if(r&&r.user)onLogin()}
+qs('microsoftBtn').onclick=async()=>{await captureGeoSilently();const ms=new firebase.auth.OAuthProvider('microsoft.com');ms.addScope('openid');ms.addScope('profile');ms.addScope('email');const r=await providerSignIn(ms);if(r&&r.user)onLogin()}
 
-async function startScanner(){
-  try{
-    html5QrCode = new Html5Qrcode("scanner");
-    await html5QrCode.start({facingMode:"environment"}, {fps:10, qrbox:250}, onScan, err=>{});
-    document.getElementById('scanFeedback').textContent='Point camera at QR Code';
-  }catch(e){
-    document.getElementById('scanFeedback').textContent='Camera Error: '+e;
-    try{ await html5QrCode.start({facingMode:"user"}, {fps:10, qrbox:250}, onScan, err=>{}); }catch(e2){}
+let currentSlot=null, html5Qr=null, myProfile=null;
+
+async function onLogin(){
+  const u=auth.currentUser; qs('authMsg').textContent='Signed in as '+u.email;
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectUrl = urlParams.get('redirect');
+  const doc=await db.collection('users').doc(u.uid).get();
+  if(doc.exists){
+    myProfile=doc.data(); qs('hi').textContent='Hi '+(myProfile.name||'Student');
+    if(redirectUrl){ window.location.href = decodeURIComponent(redirectUrl); return; }
+    show('authPanel',false); show('homePanel',true);
+    document.getElementById('goMark').onclick=()=>{
+      show('homePanel',false); show('attPanel',true);
+      qs('areg').value=myProfile?.reg_no||''; qs('apass').value='';
+      qs('scanMsg').textContent='Scanner idle';
+    };
+    startSessionListener(); // FIXED: Real-time listener
+  }else{
+    show('authPanel',false); show('signupPanel',true);
   }
 }
-function stopScanner(){ if(html5QrCode) html5QrCode.stop().then(()=>html5QrCode.clear()); show('homePanel'); }
 
-async function onScan(txt){
-  if(html5QrCode) html5QrCode.stop();
-  document.getElementById('scanFeedback').textContent='Processing...';
-  
-  // Verify Identity
-  const pass=document.getElementById('vPass').value.trim();
-  if(pass !== profile.dob){ alert(`Enter DOB (${profile.dob}) to confirm identity!`); stopScanner(); return; }
+/* Profile save */
+function validReg(s){return /^[0-9]{7}[A-Z]{3}$/.test(s)}
+function validDob(s){return /^(0[1-9]|[12][0-9]|3[01])[A-Z][a-z]{2}[0-9]{4}$/.test(s)}
+qs('signupBtn').onclick=async()=>{
+  const u=auth.currentUser;if(!u) return alert('Sign in first');
+  const name=qs('name').value.trim(),dept=qs('dept').value.trim(),reg=qs('reg').value.trim(),dob=qs('dob').value.trim();
+  if(!name||!dept||!reg||!dob) return qs('signupMsg').textContent='All fields mandatory';
+  if(!validReg(reg)) return qs('signupMsg').textContent='Invalid Reg No (e.g., 2400249MBS)';
+  if(!validDob(dob)) return qs('signupMsg').textContent='Invalid DOB (e.g., 27Aug2002)';
+  await db.collection('users').doc(u.uid).set({uid:u.uid,email:u.email,name,department:dept,reg_no:reg,dob,device_id:deviceId(),created_at:firebase.firestore.FieldValue.serverTimestamp(),role:'student'});
+  myProfile={name,department:dept,reg_no:reg,dob};
+  qs('hi').textContent='Hi '+name; show('signupPanel',false); show('homePanel',true); startSessionListener();
+};
 
-  try{
-    // Robust Parsing (Handle URL or JSON)
-    let jsonStr = txt;
-    if(txt.includes('token=')){
-      const url = new URL(txt.startsWith('http')?txt:'https://a.com/'+txt);
-      jsonStr = atob(url.searchParams.get('token'));
-    }else if(!txt.startsWith('{')){
-      // Try base64 decoding raw string just in case
-      try{ jsonStr = atob(txt); }catch(e){}
+/* FIX 1: Real-time Session Listener (Allows Raise Token to work instantly) */
+function startSessionListener(){
+  qs('liveHint').textContent='Listening for sessions...';
+  db.collection('slots').where('status','==','live')
+    .onSnapshot(snapshot => {
+      if(!snapshot.empty){
+        const doc = snapshot.docs[0];
+        currentSlot = { id: doc.id, ...doc.data() };
+        qs('liveHint').innerHTML = '<span style="color:#22c55e">● Attendance is LIVE</span>';
+        const btn = qs('goMark');
+        btn.disabled = false;
+        btn.textContent = `Mark Attendance (${currentSlot.course || 'Live'})`;
+      } else {
+        currentSlot = null;
+        qs('liveHint').textContent = 'No attendance is live now.';
+        const btn = qs('goMark');
+        btn.disabled = true;
+        btn.textContent = 'Wait for Live Session...';
+      }
+    });
+}
+
+/* HMAC Utils */
+async function importKeyHex(hex){
+  const bytes=new Uint8Array(hex.match(/.{1,2}/g).map(h=>parseInt(h,16)));
+  return crypto.subtle.importKey('raw',bytes,{name:'HMAC',hash:'SHA-256'},false,['sign']);
+}
+async function hmacHex(key,data){
+  const sig=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* FIX 2: Robust QR Processing */
+async function processScannedUrl(urlOrData){
+  setScanMsg('Analyzing QR...');
+  try {
+    // 1. Extract Token & Sig
+    let tokenStr = null;
+    let sigStr = null;
+
+    if(urlOrData.includes('token=') && urlOrData.includes('sig=')){
+      // Handle Full URL
+      const dummyUrl = urlOrData.startsWith('http') ? urlOrData : 'http://dummy.com/'+urlOrData;
+      const urlObj = new URL(dummyUrl);
+      tokenStr = urlObj.searchParams.get('token');
+      sigStr = urlObj.searchParams.get('sig');
+    } else {
+      throw new Error("Invalid QR Format. Please scan the Faculty Screen.");
     }
 
-    const payload = JSON.parse(jsonStr);
+    if(!tokenStr || !sigStr) throw new Error("Missing token/signature.");
+
+    // 2. Decode Token
+    const payload = JSON.parse(atob(tokenStr));
     
-    if(payload.slot_id !== currentSlot.id) throw "QR is from a different session!";
-    if(payload.exp < Date.now()/1000) throw "QR Expired! Scan the new one.";
+    // 3. Validation Logic
+    if(!currentSlot || payload.slot_id !== currentSlot.id) throw new Error("QR is from a different session!");
+    if(Date.now()/1000 > payload.exp) throw new Error("QR Code Expired! Scan the new one.");
+
+    // 4. Verify Signature (Security)
+    if(!currentSlot.kv_key) throw new Error("Session config error (missing key).");
+    const hmacKey = await importKeyHex(currentSlot.kv_key);
+    const expectedSig = await hmacHex(hmacKey, tokenStr);
+    
+    if(expectedSig.toLowerCase() !== sigStr.toLowerCase()) throw new Error("Security Check Failed (Invalid Sig).");
+
+    // 5. Identity Check
+    const u = auth.currentUser;
+    const pass = qs('apass').value.trim();
+    if(pass !== myProfile.dob) throw new Error(`DOB Verification Failed. Enter ${myProfile.dob}`);
+
+    // 6. Geofence (Optional but recommended)
+    await captureGeoSilently();
+    if(currentSlot.room_lat && currentSlot.room_lng && lastGeo){
+      const d = distM({lat:currentSlot.room_lat, lng:currentSlot.room_lng}, {lat:lastGeo.lat, lng:lastGeo.lng});
+      if(d > (currentSlot.radius_m || 60)) throw new Error(`Too far (${Math.round(d)}m). Move closer.`);
+    }
+
+    // 7. Write to Firestore
+    setScanMsg('Marking...');
+    
+    // Check duplicate locally first to save write
+    const dup = await db.collection('checkins').where('slot_id','==',currentSlot.id).where('student_uid','==',u.uid).limit(1).get();
+    if(!dup.empty){
+       showSuccess(); 
+       stopScanner();
+       return;
+    }
 
     await db.collection('checkins').add({
-      slot_id: currentSlot.id, student_uid: user.uid,
-      name: profile.name, reg_no: profile.reg_no, email: user.email,
-      ts_server: firebase.firestore.FieldValue.serverTimestamp(),
-      ts_client: new Date(), result: 'OK', method: 'APP_SCAN',
-      lat: lastGeo?.latitude||null, lng: lastGeo?.longitude||null
+      student_uid: u.uid, email: u.email, name: myProfile.name, reg_no: myProfile.reg_no,
+      slot_id: currentSlot.id,
+      ts_client: new Date(), ts_server: firebase.firestore.FieldValue.serverTimestamp(),
+      lat: lastGeo?.lat || null, lng: lastGeo?.lng || null, acc_m: lastGeo?.acc_m || null,
+      device_id: deviceId(), method: 'APP_SCAN', result: 'OK'
     });
 
-    document.getElementById('successOverlay').classList.add('active');
-  }catch(e){
-    alert('Failed: '+(e.message||e)); stopScanner();
+    showSuccess();
+    stopScanner();
+
+  } catch (e) {
+    console.error(e);
+    setScanMsg('❌ ' + e.message);
+    showFail(e.message);
+    // Do not stop scanner immediately on error, allow retry
+    setTimeout(() => { if(html5Qr) setScanMsg('Ready to scan...'); }, 2000);
   }
 }
 
-// 5. RAISE TOKEN (Fixed)
-document.getElementById('raiseBtn').onclick=async()=>{
-  const r=document.getElementById('rtReason').value.trim();
-  const box=document.getElementById('rtStatus');
-  if(!currentSlot){ box.textContent='❌ No live session.'; return; }
-  if(!r){ box.textContent='⚠️ Enter a reason.'; return; }
-  
-  box.textContent='Sending...';
-  await db.collection('raise_tokens').add({
-    slot_id: currentSlot.id, student_uid: user.uid,
-    student_name: profile.name, reg_no: profile.reg_no, email: user.email,
-    reason: r, state: 'open', created_at: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  box.textContent='✅ Token Sent! Waiting for faculty...';
-  
-  // Listen for reply
-  db.collection('raise_tokens').where('slot_id','==',currentSlot.id).where('student_uid','==',user.uid)
-    .onSnapshot(s=>{
-      s.docChanges().forEach(c=>{
-        if(c.type==='modified'){
-          const st=c.doc.data().state;
-          if(st==='accepted') alert('Faculty APPROVED your token!');
-          if(st==='denied') alert('Faculty DENIED your token.');
-        }
-      });
-    });
+/* Scanner */
+function setScanMsg(m){qs('scanMsg').textContent=m}
+qs('startScan').onclick=async()=>{
+  const pass = qs('apass').value.trim();
+  if(!pass){ alert("Please enter your Password (DOB) first."); return; }
+
+  if(typeof Html5Qrcode==='undefined'){ setScanMsg('❌ QR library error'); return; }
+  try{
+    if(html5Qr){ try{await html5Qr.stop()}catch(_){ } html5Qr.clear(); }
+    html5Qr = new Html5Qrcode("scanner",{ verbose:false });
+    const config = { facingMode: "environment" }; // Prefer back camera
+    await html5Qr.start(config, { fps: 10, qrbox: 250 },
+      async (decodedText)=>{
+        // throttle scans?
+        if(qs('scanMsg').textContent.includes('Marking')) return; 
+        await processScannedUrl(decodedText);
+      }, (_)=>{}
+    ); 
+    setScanMsg('Point at Faculty Screen...');
+  }catch(e){ 
+    setScanMsg('Camera error: '+(e.message)); 
+    // fallback
+    try { await html5Qr.start({ facingMode: "user" }, { fps: 10, qrbox: 250 }, async (txt)=>{ await processScannedUrl(txt) }); } catch(ex){}
+  }
 };
+function stopScanner(){ if(html5Qr){ html5Qr.stop().then(()=>html5Qr.clear()); html5Qr=null; setScanMsg('Scanner stopped'); } }
+qs('stopScan').onclick = stopScanner;
+
+/* Overlays */
+function showSuccess(){ const ov=qs('okOverlay'); ov.style.display='flex'; setTimeout(()=>{ ov.style.display='none'; }, 2000); }
+function showFail(msg){ qs('errText').innerHTML=`❌ ${msg}`; const ov=qs('errOverlay'); ov.style.display='flex'; setTimeout(()=>{ ov.style.display='none'; }, 3000); }
+
+/* Raise Token (Fixed) */
+qs('raiseBtn').onclick=async()=>{
+  const u=auth.currentUser; if(!u) return alert('Sign in first');
+  const reason=qs('rtReason').value.trim(); if(!reason) return alert('Reason is mandatory');
+  
+  // FIX: Explicit check if session exists
+  if(!currentSlot) return alert("No live session found to raise token for!");
+
+  qs('rtMsg').textContent='Sending...';
+  
+  try {
+    const ref = await db.collection('raise_tokens').add({
+      student_uid: u.uid, email: u.email, student_name: myProfile?.name, reg_no: myProfile?.reg_no,
+      reason, state: 'open', slot_id: currentSlot.id, // ID is now guaranteed
+      created_ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    qs('rtMsg').textContent='✅ Token sent! Waiting for faculty response...';
+    
+    // Listen for reply
+    ref.onSnapshot(d => {
+      const x = d.data();
+      if(x && x.state === 'accepted') showToast('<strong>✅ Approved</strong><div>Faculty approved your token!</div>');
+      if(x && x.state === 'denied') showToast('<strong>❌ Denied</strong><div>Faculty denied your request.</div>');
+    });
+
+  } catch(e) {
+    qs('rtMsg').textContent='Error: ' + e.message;
+  }
+};
+
+captureGeoSilently();
 </script>
 </body>
 </html>
