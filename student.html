@@ -3,141 +3,135 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<meta name="mobile-web-app-capable" content="yes"/>
 <title>Student · PQRSTU</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg1:#0a0f1f;--bg2:#0e1530;--ink:#eaf0ff;--muted:#b9c3df;--stroke:rgba(255,255,255,.12);
-    --card:rgba(16,23,41,.85);--green:#16a34a;--red:#ef4444;--blue:#3b82f6;--amber:#f59e0b
+    --card:rgba(16,23,41,.90);--green:#16a34a;--red:#ef4444;--blue:#3b82f6;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
     margin:0; font-family:Inter,system-ui,sans-serif; color:var(--ink);
-    background: radial-gradient(at 20% -10%, #2a3566 0%, transparent 60%),
-                radial-gradient(at 100% 0%, #5b2231 0%, transparent 60%),
-                linear-gradient(180deg, var(--bg1), var(--bg2));
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #2a3566 0%, transparent 60%),
+      radial-gradient(1000px 700px at 100% 0%, #5b2231 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
     padding:20px; display:flex; justify-content:center; overflow-x:hidden
   }
-  .wrap{ width:min(980px,100%); z-index:1 }
+  .wrap{ width:min(500px,100%); position:relative; z-index:1 }
   .card{
     background:var(--card); border:1px solid var(--stroke); border-radius:18px;
-    padding:20px; margin:18px 0; box-shadow:0 18px 50px rgba(0,0,0,.3);
-    backdrop-filter: blur(10px); animation:up .5s ease forwards;
+    padding:24px; margin-bottom:20px; box-shadow:0 18px 50px rgba(0,0,0,.4);
+    backdrop-filter: blur(12px); animation:fadeIn .5s ease;
   }
-  @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   
   .hidden{display:none !important}
-  h2{margin:0 0 12px; font-size:20px}
-  .muted{color:var(--muted); font-size:14px}
+  h1{margin:0 0 8px; font-size:28px; font-weight:800; background:linear-gradient(90deg,#fff,#ccc); -webkit-background-clip:text; -webkit-text-fill-color:transparent}
+  h2{margin:0 0 16px; font-size:20px}
+  .muted{color:var(--muted); font-size:14px; line-height:1.5}
   
   /* Inputs & Buttons */
   input,select{
     width:100%; padding:14px; border-radius:12px; border:1px solid #304060; 
-    background:#0f1630; color:#fff; margin-bottom:12px; font-size:16px;
+    background:#0f1630; color:#fff; margin-bottom:12px; font-size:15px;
   }
   input:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,.2)}
   
   .btn{
-    width:100%; padding:14px; border-radius:12px; border:none;
+    width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);
     background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
     color:#fff; font-weight:700; font-size:16px; cursor:pointer;
-    box-shadow:0 4px 12px rgba(0,0,0,.2); transition:transform .1s;
+    box-shadow:0 4px 12px rgba(0,0,0,.2); margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:10px;
   }
   .btn:active{transform:scale(.98)}
   .btn.primary{background:var(--blue)}
   .btn.green{background:var(--green)}
   .btn.red{background:var(--red)}
 
-  /* Scanner Specifics */
+  /* Scanner Box */
   #scannerContainer{
     position:relative; border-radius:16px; overflow:hidden; 
-    border:2px dashed rgba(255,255,255,.2); background:#000; min-height:300px;
+    border:2px dashed rgba(255,255,255,.3); background:#000; min-height:320px;
   }
   #scanner video { object-fit: cover; width:100%; height:100%; }
   
   /* Status Overlays */
-  .overlay{position:fixed; inset:0; z-index:999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.9); opacity:0; pointer-events:none; transition:opacity .3s}
+  .overlay{position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.9); opacity:0; pointer-events:none; transition:opacity .3s}
   .overlay.active{opacity:1; pointer-events:all}
   .msg-box{background:#111; padding:30px; border-radius:20px; text-align:center; max-width:320px; border:1px solid #333}
   .big-icon{font-size:48px; display:block; margin-bottom:16px}
-
-  /* Toast */
-  #toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; padding:12px 24px; border-radius:30px; font-size:14px; opacity:0; pointer-events:none; transition:opacity .3s; white-space:nowrap; z-index:1000}
 </style>
 </head>
 <body>
-
-<div id="toast"></div>
 
 <div id="successOverlay" class="overlay">
   <div class="msg-box">
     <span class="big-icon">✅</span>
     <h3>Attendance Marked!</h3>
     <p class="muted">Your presence has been recorded successfully.</p>
-    <button class="btn" onclick="location.reload()">Done</button>
+    <button class="btn green" onclick="location.reload()">Done</button>
   </div>
 </div>
 
 <div class="wrap">
-  <div id="authPanel" class="card" style="text-align:center">
-    <h1 style="margin-bottom:8px">PQRSTU</h1>
-    <p class="muted">Student Attendance Portal</p>
-    <div style="margin:24px 0">
-      <button class="btn" id="googleBtn" style="background:#fff;color:#000;margin-bottom:12px">
-        <span style="margin-right:8px">G</span> Sign in with Google
+  <div id="authPanel" class="card">
+    <div style="text-align:center; padding:20px 0">
+      <h1>PQRSTU</h1>
+      <p class="muted" style="margin-bottom:30px">Log in to mark your attendance</p>
+      <button class="btn" id="googleBtn" style="background:#fff; color:#000">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Sign in with Google
       </button>
       <button class="btn" id="microsoftBtn" style="background:#2f2f2f">
-        <span style="margin-right:8px">❖</span> Sign in with Microsoft
+        <span style="font-size:18px">❖</span> Sign in with Microsoft
       </button>
+      <div id="authMsg" class="muted" style="margin-top:16px; font-size:12px">Secure Authentication</div>
     </div>
-    <div id="authStatus" class="muted">Not signed in</div>
   </div>
 
   <div id="profilePanel" class="card hidden">
-    <h2>One-time Setup</h2>
-    <p class="muted">Please update your details to continue.</p>
+    <h2>Complete Profile</h2>
+    <p class="muted">We need your details for the attendance record.</p>
     <input id="pName" placeholder="Full Name">
-    <input id="pReg" placeholder="Registration No (e.g. 2400249MBS)" maxlength="10">
+    <input id="pReg" placeholder="Registration No (e.g. 2400249MBS)" maxlength="10" style="text-transform:uppercase">
     <input id="pDob" placeholder="DOB (e.g. 15Aug1999)">
-    <select id="pDept"><option>MBA in Sustainability Management</option></select>
     <button class="btn primary" id="saveProfileBtn">Save & Continue</button>
   </div>
 
   <div id="homePanel" class="card hidden">
-    <h2 id="welcomeText">Hello Student</h2>
+    <h2 id="welcomeText" style="margin-bottom:6px">Hello Student</h2>
+    <p class="muted" style="margin-bottom:20px">Ready to mark attendance?</p>
     
-    <div id="statusBox" style="background:rgba(255,255,255,.05); padding:16px; border-radius:12px; margin-bottom:16px">
-      <div id="liveIndicator" style="color:var(--amber); font-weight:700">● Checking for live sessions...</div>
-      <div id="sessionInfo" class="muted" style="margin-top:4px; font-size:13px">Please wait...</div>
+    <div style="background:rgba(255,255,255,.06); padding:16px; border-radius:12px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.1)">
+      <div id="liveIndicator" style="font-weight:700; color:var(--red); display:flex; align-items:center; gap:8px">
+        <span>●</span> <span id="liveText">No Session Active</span>
+      </div>
+      <div id="sessionInfo" class="muted" style="margin-top:4px; font-size:13px">Waiting for faculty...</div>
     </div>
 
     <button id="scanActionBtn" class="btn green" disabled>📷 Scan QR Code</button>
     
-    <hr style="border:0; border-top:1px solid var(--stroke); margin:20px 0">
-
-    <h3>Having trouble?</h3>
-    <input id="rtReason" placeholder="Describe your issue (e.g. Camera not working)">
-    <button id="raiseBtn" class="btn red">Raise Token</button>
-    <div id="rtStatus" class="muted" style="margin-top:8px"></div>
+    <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--stroke)">
+      <h3 style="font-size:16px; margin:0 0 10px">Having issues?</h3>
+      <input id="rtReason" placeholder="Describe issue (e.g. Camera broken)">
+      <button id="raiseBtn" class="btn red">Raise Token</button>
+      <div id="rtStatus" class="muted" style="margin-top:8px; font-size:13px"></div>
+    </div>
   </div>
 
   <div id="scanPanel" class="card hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
       <h2>Scan QR</h2>
-      <button class="btn" style="width:auto; padding:8px 16px" onclick="stopScanner()">Close</button>
+      <button class="btn" style="width:auto; padding:6px 14px; margin:0; font-size:13px" onclick="stopScanner()">Cancel</button>
     </div>
-    <div id="scannerContainer">
-      <div id="scanner"></div>
-    </div>
-    <p id="scanFeedback" style="text-align:center; margin-top:12px; color:var(--blue)">Camera initializing...</p>
+    <div id="scannerContainer"><div id="scanner"></div></div>
+    <p id="scanFeedback" style="text-align:center; margin-top:16px; color:var(--blue)">Initializing camera...</p>
     
-    <div style="margin-top:20px; border-top:1px solid var(--stroke); padding-top:20px">
-      <p class="muted">Verify Identity to confirm:</p>
-      <input id="vReg" placeholder="Reg No (Auto-filled)" disabled>
-      <input id="vPass" placeholder="Enter DOB (e.g. 15Aug1999)">
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--stroke)">
+      <p class="muted" style="font-size:12px">VERIFY IDENTITY</p>
+      <input id="vPass" placeholder="Enter your DOB to confirm" style="margin-bottom:8px">
     </div>
   </div>
 </div>
@@ -148,255 +142,142 @@
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
-// 1. CONFIGURATION
+// CONFIG
 const firebaseConfig={apiKey:"AIzaSyDmsPg0iw05Ih2N2LEPcVAd-vmhDl1nm5U",authDomain:"project-qr-eceae.firebaseapp.com",projectId:"project-qr-eceae",storageBucket:"project-qr-eceae.firebasestorage.app",messagingSenderId:"527248340371",appId:"1:527248340371:web:870ca9bed83372e390e466"};
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const auth=firebase.auth(), db=firebase.firestore();
 
-// 2. STATE MANAGEMENT
-let user = null;
-let profile = null;
-let currentSlot = null;
-let html5QrCode = null;
-let lastGeo = null;
+// STATE
+let user=null, profile=null, currentSlot=null, html5QrCode=null, lastGeo=null;
 
-// 3. AUTHENTICATION
-const providerLogin = async (provider) => {
-  try {
-    await auth.signInWithPopup(provider);
-  } catch (e) {
-    if (e.code === 'auth/popup-blocked') auth.signInWithRedirect(provider);
-    else alert(e.message);
-  }
-};
+// NAVIGATION
+function show(id){ ['authPanel','profilePanel','homePanel','scanPanel'].forEach(p=>document.getElementById(p).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
 
-document.getElementById('googleBtn').onclick = () => providerLogin(new firebase.auth.GoogleAuthProvider());
-document.getElementById('microsoftBtn').onclick = () => providerLogin(new firebase.auth.OAuthProvider('microsoft.com'));
+// 1. AUTH LOGIC
+const login=p=>auth.signInWithPopup(p).catch(e=>alert(e.message));
+document.getElementById('googleBtn').onclick=()=>login(new firebase.auth.GoogleAuthProvider());
+document.getElementById('microsoftBtn').onclick=()=>{const p=new firebase.auth.OAuthProvider('microsoft.com'); login(p);};
 
-auth.onAuthStateChanged(async (u) => {
-  if (u) {
-    user = u;
-    document.getElementById('authStatus').innerText = `Signed in as ${u.email}`;
-    await checkProfile();
-  } else {
-    showPanel('authPanel');
-  }
+auth.onAuthStateChanged(async u=>{
+  if(u){
+    user=u; document.getElementById('authMsg').textContent='Signed in as '+u.email;
+    const d=await db.collection('users').doc(u.uid).get();
+    if(d.exists){ profile=d.data(); document.getElementById('welcomeText').innerText='Hi, '+profile.name; show('homePanel'); listenLive(); }
+    else{ show('profilePanel'); }
+  }else{ show('authPanel'); }
 });
 
-async function checkProfile() {
-  const doc = await db.collection('users').doc(user.uid).get();
-  if (doc.exists) {
-    profile = doc.data();
-    document.getElementById('welcomeText').innerText = `Hi, ${profile.name}`;
-    document.getElementById('vReg').value = profile.reg_no;
-    showPanel('homePanel');
-    listenToSessions(); // Start Real-time Listener
-  } else {
-    showPanel('profilePanel');
-  }
-}
-
-document.getElementById('saveProfileBtn').onclick = async () => {
-  const name = document.getElementById('pName').value.trim();
-  const reg = document.getElementById('pReg').value.trim();
-  const dob = document.getElementById('pDob').value.trim();
-  
-  if(!name || !reg || !dob) return alert("All fields are required");
-  
-  await db.collection('users').doc(user.uid).set({
-    uid: user.uid, email: user.email, name, reg_no: reg, dob,
-    created_at: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  checkProfile();
+// 2. PROFILE SAVE
+document.getElementById('saveProfileBtn').onclick=async()=>{
+  const name=document.getElementById('pName').value.trim(), reg=document.getElementById('pReg').value.trim(), dob=document.getElementById('pDob').value.trim();
+  if(!name||!reg||!dob) return alert('Fill all fields');
+  await db.collection('users').doc(user.uid).set({uid:user.uid,email:user.email,name,reg_no:reg,dob,created_at:new Date()});
+  location.reload();
 };
 
-// 4. REAL-TIME SESSION LISTENER (Fixes Raise Token Bug)
-function listenToSessions() {
-  db.collection('slots').where('status', '==', 'live')
-    .onSnapshot((snapshot) => {
-      if (!snapshot.empty) {
-        // We have a live session!
-        const doc = snapshot.docs[0];
-        currentSlot = { id: doc.id, ...doc.data() };
-        
-        document.getElementById('liveIndicator').innerHTML = `🟢 <b>Attendance is LIVE</b>`;
-        document.getElementById('liveIndicator').style.color = '#22c55e'; // Green
-        document.getElementById('sessionInfo').innerText = `${currentSlot.course} (${currentSlot.remarks || ''})`;
-        document.getElementById('scanActionBtn').disabled = false;
-        document.getElementById('scanActionBtn').innerText = "📷 Scan QR Code";
-      } else {
-        // No live session
-        currentSlot = null;
-        document.getElementById('liveIndicator').innerHTML = `🔴 <b>No Active Session</b>`;
-        document.getElementById('liveIndicator').style.color = '#ef4444'; // Red
-        document.getElementById('sessionInfo').innerText = "Waiting for faculty to start...";
-        document.getElementById('scanActionBtn').disabled = true;
-        document.getElementById('scanActionBtn').innerText = "Wait for Session";
-      }
-    });
+// 3. LISTEN FOR SESSIONS (Fixes "Raise Token" bug)
+function listenLive(){
+  db.collection('slots').where('status','==','live').onSnapshot(snap=>{
+    if(!snap.empty){
+      const d=snap.docs[0]; currentSlot={id:d.id, ...d.data()};
+      document.getElementById('liveText').textContent='Attendance is LIVE';
+      document.getElementById('liveIndicator').style.color='var(--green)';
+      document.getElementById('sessionInfo').textContent=`${currentSlot.course}`;
+      document.getElementById('scanActionBtn').disabled=false;
+    }else{
+      currentSlot=null;
+      document.getElementById('liveText').textContent='No Session Active';
+      document.getElementById('liveIndicator').style.color='var(--red)';
+      document.getElementById('sessionInfo').textContent='Waiting for faculty...';
+      document.getElementById('scanActionBtn').disabled=true;
+    }
+  });
 }
 
-// 5. SCANNER LOGIC (Fixes Camera & Reflection Bug)
-function showPanel(id) {
-  ['authPanel','profilePanel','homePanel','scanPanel'].forEach(p => document.getElementById(p).classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-}
-
-document.getElementById('scanActionBtn').onclick = () => {
-  // Capture GPS immediately
-  if(navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      p => { lastGeo = p.coords; }, 
-      e => { console.warn("GPS Fail", e); alert("Please enable GPS for attendance."); }
-    );
-  }
-  showPanel('scanPanel');
+// 4. SCANNER (Fixes "Not Scanning" bug)
+document.getElementById('scanActionBtn').onclick=()=>{
+  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>lastGeo=p.coords);
+  show('scanPanel');
   startScanner();
 };
 
-async function startScanner() {
-  try {
+async function startScanner(){
+  try{
     html5QrCode = new Html5Qrcode("scanner");
-    // Config specifically for mobile rear camera
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-    
-    // Try environment first, fallback to user
-    await html5QrCode.start(
-      { facingMode: "environment" }, 
-      config, 
-      onScanSuccess, 
-      (err) => { /* ignore frame errors */ }
-    );
-    document.getElementById('scanFeedback').innerText = "Point camera at Faculty Screen";
-  } catch (e) {
-    document.getElementById('scanFeedback').innerText = "Camera Error: " + e;
-    // Fallback try
-    try {
-      await html5QrCode.start({ facingMode: "user" }, config, onScanSuccess);
-    } catch(e2) { alert("Camera failed. Please check permissions."); }
+    await html5QrCode.start({facingMode:"environment"}, {fps:10, qrbox:250}, onScan, err=>{});
+    document.getElementById('scanFeedback').textContent='Point camera at QR Code';
+  }catch(e){
+    document.getElementById('scanFeedback').textContent='Camera Error: '+e;
+    try{ await html5QrCode.start({facingMode:"user"}, {fps:10, qrbox:250}, onScan, err=>{}); }catch(e2){}
   }
 }
+function stopScanner(){ if(html5QrCode) html5QrCode.stop().then(()=>html5QrCode.clear()); show('homePanel'); }
 
-function stopScanner() {
-  if (html5QrCode) {
-    html5QrCode.stop().then(() => {
-      html5QrCode.clear();
-      showPanel('homePanel');
-    });
-  } else {
-    showPanel('homePanel');
-  }
-}
-
-async function onScanSuccess(decodedText) {
-  if (html5QrCode) html5QrCode.stop(); // Stop scanning once we get a hit
-  document.getElementById('scanFeedback').innerText = "Processing...";
+async function onScan(txt){
+  if(html5QrCode) html5QrCode.stop();
+  document.getElementById('scanFeedback').textContent='Processing...';
   
-  // Verify manual input matches
-  const dobInput = document.getElementById('vPass').value.trim();
-  if (dobInput !== profile.dob) {
-    alert(`DOB Verification Failed! Please enter ${profile.dob} to confirm identity.`);
-    return;
-  }
+  // Verify Identity
+  const pass=document.getElementById('vPass').value.trim();
+  if(pass !== profile.dob){ alert(`Enter DOB (${profile.dob}) to confirm identity!`); stopScanner(); return; }
 
-  try {
-    // 1. Extract Token from URL or Raw Text
-    let tokenStr = decodedText;
-    let signature = "";
-    
-    // Check if it's the new URL format
-    if(decodedText.includes("token=") && decodedText.includes("sig=")) {
-      const url = new URL(decodedText.startsWith("http") ? decodedText : "https://dummy.com/"+decodedText);
-      tokenStr = url.searchParams.get("token");
-      signature = url.searchParams.get("sig");
+  try{
+    // Robust Parsing (Handle URL or JSON)
+    let jsonStr = txt;
+    if(txt.includes('token=')){
+      const url = new URL(txt.startsWith('http')?txt:'https://a.com/'+txt);
+      jsonStr = atob(url.searchParams.get('token'));
+    }else if(!txt.startsWith('{')){
+      // Try base64 decoding raw string just in case
+      try{ jsonStr = atob(txt); }catch(e){}
     }
 
-    // 2. Decode Token
-    const payload = JSON.parse(atob(tokenStr));
+    const payload = JSON.parse(jsonStr);
     
-    // 3. Validation
-    if(payload.slot_id !== currentSlot.id) throw "QR is for a different session!";
-    if(Date.now()/1000 > payload.exp) throw "QR Code Expired! Scan a fresh one.";
+    if(payload.slot_id !== currentSlot.id) throw "QR is from a different session!";
+    if(payload.exp < Date.now()/1000) throw "QR Expired! Scan the new one.";
 
-    // 4. Write to Firestore (This updates Faculty Panel)
     await db.collection('checkins').add({
-      slot_id: currentSlot.id,
-      student_uid: user.uid,
-      name: profile.name,
-      reg_no: profile.reg_no,
-      email: user.email,
+      slot_id: currentSlot.id, student_uid: user.uid,
+      name: profile.name, reg_no: profile.reg_no, email: user.email,
       ts_server: firebase.firestore.FieldValue.serverTimestamp(),
-      ts_client: new Date(),
-      lat: lastGeo ? lastGeo.latitude : null,
-      lng: lastGeo ? lastGeo.longitude : null,
-      acc: lastGeo ? lastGeo.accuracy : null,
-      method: 'APP_SCAN',
-      result: 'OK'
+      ts_client: new Date(), result: 'OK', method: 'APP_SCAN',
+      lat: lastGeo?.latitude||null, lng: lastGeo?.longitude||null
     });
 
-    // 5. Success
     document.getElementById('successOverlay').classList.add('active');
-    
-  } catch (e) {
-    alert("Verification Failed: " + (e.message || e));
-    showPanel('homePanel');
+  }catch(e){
+    alert('Failed: '+(e.message||e)); stopScanner();
   }
 }
 
-// 6. RAISE TOKEN LOGIC (Fixed)
-document.getElementById('raiseBtn').onclick = async () => {
-  const reason = document.getElementById('rtReason').value.trim();
-  const statusDiv = document.getElementById('rtStatus');
+// 5. RAISE TOKEN (Fixed)
+document.getElementById('raiseBtn').onclick=async()=>{
+  const r=document.getElementById('rtReason').value.trim();
+  const box=document.getElementById('rtStatus');
+  if(!currentSlot){ box.textContent='❌ No live session.'; return; }
+  if(!r){ box.textContent='⚠️ Enter a reason.'; return; }
   
-  if (!currentSlot) {
-    statusDiv.innerText = "❌ No live session found to raise token for.";
-    return;
-  }
-  if (!reason) {
-    statusDiv.innerText = "⚠️ Please enter a reason.";
-    return;
-  }
-
-  statusDiv.innerText = "Sending...";
+  box.textContent='Sending...';
+  await db.collection('raise_tokens').add({
+    slot_id: currentSlot.id, student_uid: user.uid,
+    student_name: profile.name, reg_no: profile.reg_no, email: user.email,
+    reason: r, state: 'open', created_at: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  box.textContent='✅ Token Sent! Waiting for faculty...';
   
-  try {
-    await db.collection('raise_tokens').add({
-      slot_id: currentSlot.id, // Now guaranteed to exist
-      student_uid: user.uid,
-      email: user.email,
-      reg_no: profile.reg_no,
-      student_name: profile.name,
-      reason: reason,
-      state: 'open',
-      created_at: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    
-    statusDiv.innerText = "✅ Token Raised! Wait for faculty approval.";
-    document.getElementById('rtReason').value = "";
-    
-    // Listen for resolution
-    listenForTokenResolution(user.uid, currentSlot.id);
-    
-  } catch (e) {
-    statusDiv.innerText = "Error: " + e.message;
-  }
-};
-
-function listenForTokenResolution(uid, slotId) {
-  db.collection('raise_tokens')
-    .where('slot_id', '==', slotId)
-    .where('student_uid', '==', uid)
-    .onSnapshot(snap => {
-      snap.docChanges().forEach(change => {
-        if(change.type === 'modified') {
-          const data = change.doc.data();
-          if(data.state === 'accepted') alert("Faculty APPROVED your token!");
-          if(data.state === 'denied') alert("Faculty DENIED your token.");
+  // Listen for reply
+  db.collection('raise_tokens').where('slot_id','==',currentSlot.id).where('student_uid','==',user.uid)
+    .onSnapshot(s=>{
+      s.docChanges().forEach(c=>{
+        if(c.type==='modified'){
+          const st=c.doc.data().state;
+          if(st==='accepted') alert('Faculty APPROVED your token!');
+          if(st==='denied') alert('Faculty DENIED your token.');
         }
       });
     });
-}
+};
 </script>
 </body>
 </html>
